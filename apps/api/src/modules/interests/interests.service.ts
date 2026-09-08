@@ -2,11 +2,16 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { AppException } from "@/common/errors/app-exception";
 import { ErrorCode } from "@/common/errors/error-codes";
+import { NotificationsService } from "../notifications/notifications.service";
+import { NotificationType } from "@divorcedsathi/db";
 import type { Interest } from "@divorcedsathi/db";
 
 @Injectable()
 export class InterestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async send(senderId: string, recipientId: string): Promise<Interest> {
     if (senderId === recipientId) {
@@ -20,7 +25,9 @@ export class InterestsService {
       throw new AppException(ErrorCode.INTEREST_ALREADY_SENT, "You've already sent an interest to this profile.", HttpStatus.CONFLICT);
     }
 
-    return this.prisma.client.interest.create({ data: { senderId, recipientId } });
+    const interest = await this.prisma.client.interest.create({ data: { senderId, recipientId } });
+    await this.notifications.create(recipientId, NotificationType.INTEREST_RECEIVED, { interestId: interest.id, fromUserId: senderId });
+    return interest;
   }
 
   async listReceived(userId: string): Promise<Interest[]> {
@@ -71,6 +78,8 @@ export class InterestsService {
         data: { interestId, userAId, userBId },
       }),
     ]);
+
+    await this.notifications.create(interest.senderId, NotificationType.INTEREST_ACCEPTED, { interestId });
 
     return updated;
   }

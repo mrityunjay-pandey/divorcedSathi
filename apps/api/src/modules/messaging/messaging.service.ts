@@ -2,6 +2,8 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { AppException } from "@/common/errors/app-exception";
 import { ErrorCode } from "@/common/errors/error-codes";
+import { NotificationsService } from "../notifications/notifications.service";
+import { NotificationType } from "@divorcedsathi/db";
 import type { Conversation, Match, Message } from "@divorcedsathi/db";
 
 function assertParticipant(match: Match, userId: string): void {
@@ -12,7 +14,10 @@ function assertParticipant(match: Match, userId: string): void {
 
 @Injectable()
 export class MessagingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   /**
    * Conversations are created lazily on first access rather than eagerly
@@ -49,8 +54,13 @@ export class MessagingService {
   }
 
   async sendMessage(conversationId: string, senderId: string, content: string): Promise<Message> {
-    await this.requireParticipantConversation(conversationId, senderId);
-    return this.prisma.client.message.create({ data: { conversationId, senderId, content } });
+    const conversation = await this.requireParticipantConversation(conversationId, senderId);
+    const message = await this.prisma.client.message.create({ data: { conversationId, senderId, content } });
+
+    const recipientId = conversation.match.userAId === senderId ? conversation.match.userBId : conversation.match.userAId;
+    await this.notifications.create(recipientId, NotificationType.NEW_MESSAGE, { conversationId, messageId: message.id });
+
+    return message;
   }
 
   async listMessages(conversationId: string, userId: string): Promise<Message[]> {

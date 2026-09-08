@@ -61,6 +61,7 @@ model User {
   matchesAsA        Match[]    @relation("MatchUserA")
   matchesAsB        Match[]    @relation("MatchUserB")
   messagesSent      Message[]  @relation("MessageSender")
+  notifications     Notification[]
 
   @@index([email])
   @@index([mobileNumber])
@@ -447,4 +448,39 @@ model Message {
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Module 11 — Notifications (brief §34)
+// ---------------------------------------------------------------------------
+// In-app only for now. Email/SMS/push are separate delivery channels the
+// brief lists, but none of them have a configured provider yet (the
+// adapter interfaces from Module 2's auth OTP flow — EmailProvider/
+// SmsProvider — are the pattern to reuse once one is chosen; push needs a
+// device-token model that doesn't exist yet either). `payload` carries
+// enough structured data for the frontend to render and link to the
+// relevant page (e.g. { interestId } or { conversationId }) without a
+// separate lookup.
+
+enum NotificationType {
+  INTEREST_RECEIVED
+  INTEREST_ACCEPTED
+  NEW_MESSAGE
+  PROFILE_VIEWED
+  PHOTO_REQUEST
+  VERIFICATION_COMPLETED
+  SUBSCRIPTION_ACTIVATED
+  SECURITY_ALERT
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  payload   Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
 }

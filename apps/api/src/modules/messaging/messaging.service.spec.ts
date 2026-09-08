@@ -1,8 +1,9 @@
 import { Test } from "@nestjs/testing";
 import { MessagingService } from "./messaging.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
+import { NotificationsService } from "../notifications/notifications.service";
 import { ErrorCode } from "@/common/errors/error-codes";
-import type { Conversation, Match, Message } from "@divorcedsathi/db";
+import { NotificationType, type Conversation, type Match, type Message } from "@divorcedsathi/db";
 
 type MockPrisma = {
   client: {
@@ -23,6 +24,7 @@ function baseConversation(overrides: Partial<Conversation> = {}): Conversation {
 describe("MessagingService", () => {
   let service: MessagingService;
   let prisma: MockPrisma;
+  let notifications: { create: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -32,9 +34,14 @@ describe("MessagingService", () => {
         message: { create: jest.fn(), findMany: jest.fn(), updateMany: jest.fn() },
       },
     };
+    notifications = { create: jest.fn() };
 
     const moduleRef = await Test.createTestingModule({
-      providers: [MessagingService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        MessagingService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: NotificationsService, useValue: notifications },
+      ],
     }).compile();
 
     service = moduleRef.get(MessagingService);
@@ -113,6 +120,15 @@ describe("MessagingService", () => {
       await expect(service.sendMessage("nonexistent", "user-1", "hi")).rejects.toMatchObject({
         code: ErrorCode.CONVERSATION_NOT_FOUND,
       });
+    });
+
+    it("notifies the OTHER participant, never the sender themself, on a new message", async () => {
+      prisma.client.conversation.findUnique.mockResolvedValueOnce({ ...baseConversation(), match: baseMatch() });
+      prisma.client.message.create.mockResolvedValueOnce({ id: "msg-1" } as Message);
+
+      await service.sendMessage("conv-1", "user-1", "hello");
+
+      expect(notifications.create).toHaveBeenCalledWith("user-2", NotificationType.NEW_MESSAGE, expect.objectContaining({ conversationId: "conv-1" }));
     });
   });
 

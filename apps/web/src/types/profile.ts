@@ -197,3 +197,22 @@ export interface ChatMessage {
   readAt: string | null;
   createdAt: string;
 }
+
+export type NotificationType =
+  | "INTEREST_RECEIVED"
+  | "INTEREST_ACCEPTED"
+  | "NEW_MESSAGE"
+  | "PROFILE_VIEWED"
+  | "PHOTO_REQUEST"
+  | "VERIFICATION_COMPLETED"
+  | "SUBSCRIPTION_ACTIVATED"
+  | "SECURITY_ALERT";
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  payload: Record<string, unknown> | null;
+  readAt: string | null;
+  createdAt: string;
+}

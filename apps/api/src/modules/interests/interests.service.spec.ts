@@ -1,8 +1,9 @@
 import { Test } from "@nestjs/testing";
 import { InterestsService } from "./interests.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
+import { NotificationsService } from "../notifications/notifications.service";
 import { ErrorCode } from "@/common/errors/error-codes";
-import type { Interest } from "@divorcedsathi/db";
+import { NotificationType, type Interest } from "@divorcedsathi/db";
 
 type MockPrisma = {
   client: {
@@ -27,6 +28,7 @@ function baseInterest(overrides: Partial<Interest> = {}): Interest {
 describe("InterestsService", () => {
   let service: InterestsService;
   let prisma: MockPrisma;
+  let notifications: { create: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -36,9 +38,14 @@ describe("InterestsService", () => {
         $transaction: jest.fn(),
       },
     };
+    notifications = { create: jest.fn() };
 
     const moduleRef = await Test.createTestingModule({
-      providers: [InterestsService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        InterestsService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: NotificationsService, useValue: notifications },
+      ],
     }).compile();
 
     service = moduleRef.get(InterestsService);
@@ -64,6 +71,15 @@ describe("InterestsService", () => {
       await service.send("user-1", "user-2");
 
       expect(prisma.client.interest.create).toHaveBeenCalledWith({ data: { senderId: "user-1", recipientId: "user-2" } });
+    });
+
+    it("notifies the recipient, never the sender, when an interest is sent", async () => {
+      prisma.client.interest.findUnique.mockResolvedValueOnce(null);
+      prisma.client.interest.create.mockResolvedValueOnce(baseInterest());
+
+      await service.send("user-1", "user-2");
+
+      expect(notifications.create).toHaveBeenCalledWith("user-2", NotificationType.INTEREST_RECEIVED, expect.objectContaining({ fromUserId: "user-1" }));
     });
   });
 
@@ -126,6 +142,15 @@ describe("InterestsService", () => {
       expect(prisma.client.$transaction).toHaveBeenCalledTimes(1);
       const [txCalls] = prisma.client.$transaction.mock.calls[0];
       expect(txCalls).toHaveLength(2);
+    });
+
+    it("notifies the original sender (not the responder) when their interest is accepted", async () => {
+      prisma.client.interest.findUnique.mockResolvedValueOnce(baseInterest({ senderId: "user-2", recipientId: "user-1" }));
+      prisma.client.$transaction.mockResolvedValueOnce([baseInterest({ status: "ACCEPTED" as Interest["status"] })]);
+
+      await service.respond("interest-1", "user-1", "ACCEPTED");
+
+      expect(notifications.create).toHaveBeenCalledWith("user-2", NotificationType.INTEREST_ACCEPTED, expect.objectContaining({ interestId: "interest-1" }));
     });
   });
 });
