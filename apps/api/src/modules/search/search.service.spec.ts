@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { SearchService } from "./search.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { PreviousMarriageService } from "../family/previous-marriage.service";
+import { BlockService } from "../safety/block.service";
 import type { Profile, User } from "@divorcedsathi/db";
 
 type MockPrisma = {
@@ -55,16 +56,19 @@ describe("SearchService", () => {
   let service: SearchService;
   let prisma: MockPrisma;
   let previousMarriage: { getPublicSummaryByProfileId: jest.Mock };
+  let blocks: { listRelatedUserIds: jest.Mock };
 
   beforeEach(async () => {
     prisma = { client: { user: { findMany: jest.fn(), count: jest.fn() } } };
     previousMarriage = { getPublicSummaryByProfileId: jest.fn().mockResolvedValue({ previouslyMarried: true, divorceFinalized: true }) };
+    blocks = { listRelatedUserIds: jest.fn().mockResolvedValue([]) };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         SearchService,
         { provide: PrismaService, useValue: prisma },
         { provide: PreviousMarriageService, useValue: previousMarriage },
+        { provide: BlockService, useValue: blocks },
       ],
     }).compile();
 
@@ -78,7 +82,18 @@ describe("SearchService", () => {
     await service.search("user-1", {});
 
     const whereArg = prisma.client.user.findMany.mock.calls[0][0].where;
-    expect(whereArg.id).toEqual({ not: "user-1" });
+    expect(whereArg.id).toEqual({ notIn: ["user-1"] });
+  });
+
+  it("excludes any user with a block relationship in either direction (brief §28: hidden from search entirely)", async () => {
+    prisma.client.user.findMany.mockResolvedValueOnce([]);
+    prisma.client.user.count.mockResolvedValueOnce(0);
+    blocks.listRelatedUserIds.mockResolvedValueOnce(["blocked-user-a", "blocked-user-b"]);
+
+    await service.search("user-1", {});
+
+    const whereArg = prisma.client.user.findMany.mock.calls[0][0].where;
+    expect(whereArg.id).toEqual({ notIn: ["user-1", "blocked-user-a", "blocked-user-b"] });
   });
 
   it("only ever queries ACTIVE users, never suspended/banned/deleted ones", async () => {

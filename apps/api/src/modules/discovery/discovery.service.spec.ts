@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { DiscoveryService } from "./discovery.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { PreviousMarriageService } from "../family/previous-marriage.service";
+import { BlockService } from "../safety/block.service";
 import type { PartnerPreference, Profile, User } from "@divorcedsathi/db";
 
 type MockPrisma = {
@@ -61,16 +62,19 @@ describe("DiscoveryService", () => {
   let service: DiscoveryService;
   let prisma: MockPrisma;
   let previousMarriage: { getPublicSummaryByProfileId: jest.Mock };
+  let blocks: { listRelatedUserIds: jest.Mock };
 
   beforeEach(async () => {
     prisma = { client: { partnerPreference: { findFirst: jest.fn() }, user: { findMany: jest.fn() } } };
     previousMarriage = { getPublicSummaryByProfileId: jest.fn().mockResolvedValue(null) };
+    blocks = { listRelatedUserIds: jest.fn().mockResolvedValue([]) };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         DiscoveryService,
         { provide: PrismaService, useValue: prisma },
         { provide: PreviousMarriageService, useValue: previousMarriage },
+        { provide: BlockService, useValue: blocks },
       ],
     }).compile();
 
@@ -123,7 +127,20 @@ describe("DiscoveryService", () => {
     await service.getDashboard("viewer-1");
 
     const recommendedWhere = prisma.client.user.findMany.mock.calls[0][0].where;
-    expect(recommendedWhere.id).toEqual({ not: "viewer-1" });
+    expect(recommendedWhere.id).toEqual({ notIn: ["viewer-1"] });
+  });
+
+  it("excludes blocked/blocking users from both Recommended and New Profiles (brief §28)", async () => {
+    prisma.client.partnerPreference.findFirst.mockResolvedValue(null);
+    prisma.client.user.findMany.mockResolvedValue([]);
+    blocks.listRelatedUserIds.mockResolvedValue(["blocked-a"]);
+
+    await service.getDashboard("viewer-1");
+
+    const recommendedWhere = prisma.client.user.findMany.mock.calls[0][0].where;
+    const newProfilesWhere = prisma.client.user.findMany.mock.calls[1][0].where;
+    expect(recommendedWhere.id).toEqual({ notIn: ["viewer-1", "blocked-a"] });
+    expect(newProfilesWhere.id).toEqual({ notIn: ["viewer-1", "blocked-a"] });
   });
 
   it("new-profiles section never carries a compatibility score, by construction", async () => {

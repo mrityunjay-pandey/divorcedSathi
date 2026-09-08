@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { PreviousMarriageService, type PreviousMarriagePublicSummary } from "../family/previous-marriage.service";
+import { BlockService } from "../safety/block.service";
 import type { SearchProfilesQueryDto } from "./dto/search-profiles.dto";
 import type { Prisma } from "@divorcedsathi/db";
 
@@ -68,6 +69,7 @@ export class SearchService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly previousMarriage: PreviousMarriageService,
+    private readonly blocks: BlockService,
   ) {}
 
   async search(currentUserId: string, query: SearchProfilesQueryDto): Promise<SearchResult> {
@@ -75,8 +77,12 @@ export class SearchService {
     const pageSize = query.pageSize ?? DEFAULT_PAGE_SIZE;
     const dobRange = ageToDateOfBirthRange(query.minAge, query.maxAge);
 
+    // Brief §28: a blocked/blocking relationship must hide the profile from
+    // search entirely, in both directions — not just prevent contact.
+    const relatedUserIds = await this.blocks.listRelatedUserIds(currentUserId);
+
     const where: Prisma.UserWhereInput = {
-      id: { not: currentUserId },
+      id: { notIn: [currentUserId, ...relatedUserIds] },
       status: "ACTIVE",
       ...(query.gender ? { gender: query.gender } : {}),
       ...(query.marriageStatus?.length ? { marriageStatus: { in: query.marriageStatus } } : {}),

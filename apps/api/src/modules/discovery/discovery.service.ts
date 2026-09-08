@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { PreviousMarriageService, type PreviousMarriagePublicSummary } from "../family/previous-marriage.service";
+import { BlockService } from "../safety/block.service";
 import { computeCompatibility, type CompatibilityScore } from "./compatibility";
 import type { Prisma } from "@divorcedsathi/db";
 
@@ -43,6 +44,7 @@ export class DiscoveryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly previousMarriage: PreviousMarriageService,
+    private readonly blocks: BlockService,
   ) {}
 
   async getDashboard(userId: string): Promise<DiscoveryDashboard> {
@@ -61,12 +63,13 @@ export class DiscoveryService {
    * users" ethos (preferences are optional, not a gate).
    */
   private async getRecommended(userId: string): Promise<DiscoveryCard[]> {
-    const viewerPreference = await this.prisma.client.partnerPreference.findFirst({
-      where: { profile: { userId } },
-    });
+    const [viewerPreference, relatedUserIds] = await Promise.all([
+      this.prisma.client.partnerPreference.findFirst({ where: { profile: { userId } } }),
+      this.blocks.listRelatedUserIds(userId),
+    ]);
 
     const where: Prisma.UserWhereInput = {
-      id: { not: userId },
+      id: { notIn: [userId, ...relatedUserIds] },
       status: "ACTIVE",
       profile: { isNot: null },
     };
@@ -121,8 +124,9 @@ export class DiscoveryService {
 
   /** Newest active profiles, unscored — the "New Matches" section (brief §20). */
   private async getNewProfiles(userId: string): Promise<DiscoveryCard[]> {
+    const relatedUserIds = await this.blocks.listRelatedUserIds(userId);
     const candidates = await this.prisma.client.user.findMany({
-      where: { id: { not: userId }, status: "ACTIVE", profile: { isNot: null } },
+      where: { id: { notIn: [userId, ...relatedUserIds] }, status: "ACTIVE", profile: { isNot: null } },
       include: { profile: true },
       orderBy: { createdAt: "desc" },
       take: NEW_PROFILES_LIMIT,
