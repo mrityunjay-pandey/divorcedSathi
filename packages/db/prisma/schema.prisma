@@ -60,6 +60,7 @@ model User {
   shortlistedByOthers Shortlist[] @relation("ShortlistTarget")
   matchesAsA        Match[]    @relation("MatchUserA")
   matchesAsB        Match[]    @relation("MatchUserB")
+  messagesSent      Message[]  @relation("MessageSender")
 
   @@index([email])
   @@index([mobileNumber])
@@ -397,6 +398,8 @@ model Match {
   userB      User     @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
 
+  conversation Conversation?
+
   @@unique([userAId, userBId])
   @@index([userAId])
   @@index([userBId])
@@ -412,4 +415,36 @@ model Shortlist {
 
   @@unique([userId, targetUserId])
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Module 10 — Messaging (brief §24)
+// ---------------------------------------------------------------------------
+// REST-only for now: text messages and read status. Typing indicators and
+// online/last-active status need a persistent connection (WebSocket) that
+// doesn't exist in this architecture yet — brief §24 lists them as
+// features to build, but building them without realtime infra would mean
+// either fake/polled approximations or a half-finished protocol, so they're
+// deferred rather than faked. Image sharing, anonymous messaging, and
+// public rooms are explicitly out of scope per brief §24 itself.
+
+model Conversation {
+  id        String    @id @default(uuid())
+  matchId   String    @unique
+  match     Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  content        String       @db.Text
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
 }

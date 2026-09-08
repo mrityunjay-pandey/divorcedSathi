@@ -9,6 +9,7 @@ import { PreferencesModule } from "./modules/preferences/preferences.module";
 import { SearchModule } from "./modules/search/search.module";
 import { DiscoveryModule } from "./modules/discovery/discovery.module";
 import { InterestsModule } from "./modules/interests/interests.module";
+import { MessagingModule } from "./modules/messaging/messaging.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -25,6 +26,7 @@ import { HealthController } from "./health.controller";
     SearchModule,
     DiscoveryModule,
     InterestsModule,
+    MessagingModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

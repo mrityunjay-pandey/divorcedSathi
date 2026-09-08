@@ -181,3 +181,19 @@ export interface Interest {
   createdAt: string;
   respondedAt: string | null;
 }
+
+export interface MatchSummary {
+  matchId: string;
+  conversationId: string | null;
+  otherUser: { userId: string; firstName: string };
+  createdAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  readAt: string | null;
+  createdAt: string;
+}
