@@ -136,9 +136,9 @@ enum OtpPurpose {
 // Module 3 — Base matrimonial profile
 // ---------------------------------------------------------------------------
 // Deliberately separate from User (brief §44: "Do not put everything into one
-// giant User table"). This holds Basic Info (brief §11) only — About Me,
-// Previous Marriage, Family/Children, Lifestyle, Partner Preferences, Photos
-// each get their own table in Module 4/5/6 rather than growing this one
+// giant User table"). Basic Info (brief §11) plus About Me (§12, added in
+// Module 4) live here; Previous Marriage/Family/Lifestyle/Partner
+// Preferences/Photos each get their own table so this one doesn't grow
 // without bound.
 
 model Profile {
@@ -157,6 +157,13 @@ model Profile {
   profession     String?
   employmentType EmploymentType?
   incomeRange    IncomeRange?
+
+  /// Free-text "About Me" (brief §12). Length-capped at the DTO layer, not
+  /// here — Postgres TEXT has no practical limit, so validation is the
+  /// right place to enforce a UX-sane maximum.
+  aboutMe        String?         @db.Text
+
+  lifestyle      Lifestyle?
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -180,5 +187,48 @@ enum IncomeRange {
   L10_TO_20L
   L20_TO_50L
   ABOVE_50L
+  PREFER_NOT_TO_SAY
+}
+
+// ---------------------------------------------------------------------------
+// Module 4 — Lifestyle (brief §15)
+// ---------------------------------------------------------------------------
+// All fields optional with a PREFER_NOT_TO_SAY-style escape hatch per brief
+// §15/§48 ("do not overwhelm users", "never shame"). Free-text fields
+// (hobbies/pets/travel) stay as plain strings for MVP rather than tag
+// tables — structured tagging is a reasonable post-MVP upgrade for search
+// faceting, not required to ship this module.
+
+model Lifestyle {
+  id            String        @id @default(uuid())
+  profileId     String        @unique
+  profile       Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  diet          Diet?
+  smoking       HabitFrequency?
+  drinking      HabitFrequency?
+  fitnessRoutine String?
+  hobbies       String?
+  pets          String?
+  travelFrequency String?
+  sleepSchedule String?
+  socialLifestyle String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum Diet {
+  VEGETARIAN
+  NON_VEGETARIAN
+  VEGAN
+  EGGETARIAN
+  PREFER_NOT_TO_SAY
+}
+
+enum HabitFrequency {
+  NEVER
+  OCCASIONALLY
+  REGULARLY
   PREFER_NOT_TO_SAY
 }

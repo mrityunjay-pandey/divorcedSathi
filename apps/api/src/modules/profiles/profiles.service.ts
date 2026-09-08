@@ -36,6 +36,7 @@ export class ProfilesService {
         profession: dto.profession,
         employmentType: dto.employmentType,
         incomeRange: dto.incomeRange,
+        aboutMe: dto.aboutMe,
       },
     });
   }

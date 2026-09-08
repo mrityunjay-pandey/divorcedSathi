@@ -29,6 +29,7 @@ function baseProfile(overrides: Partial<Profile> = {}): Profile {
     profession: null,
     employmentType: null,
     incomeRange: null,
+    aboutMe: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

@@ -1,4 +1,4 @@
-import { IsIn, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
 
 const EMPLOYMENT_TYPES = ["SALARIED", "SELF_EMPLOYED", "BUSINESS_OWNER", "NOT_WORKING", "PREFER_NOT_TO_SAY"] as const;
 const INCOME_RANGES = ["UNDER_5L", "L5_TO_10L", "L10_TO_20L", "L20_TO_50L", "ABOVE_50L", "PREFER_NOT_TO_SAY"] as const;
@@ -48,6 +48,11 @@ export class CreateProfileDto {
   @IsOptional()
   @IsIn(INCOME_RANGES)
   incomeRange?: (typeof INCOME_RANGES)[number];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000, { message: "About Me must be 2000 characters or fewer." })
+  aboutMe?: string;
 }
 
 /** All fields optional on update — partial edits, per brief §51's "don't overwhelm users". */
@@ -97,4 +102,9 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsIn(INCOME_RANGES)
   incomeRange?: (typeof INCOME_RANGES)[number];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000, { message: "About Me must be 2000 characters or fewer." })
+  aboutMe?: string;
 }

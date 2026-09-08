@@ -3,6 +3,8 @@ import { JwtModule } from "@nestjs/jwt";
 import { PrismaModule } from "@/common/prisma/prisma.module";
 import { ProfilesController } from "./profiles.controller";
 import { ProfilesService } from "./profiles.service";
+import { LifestyleController } from "./lifestyle.controller";
+import { LifestyleService } from "./lifestyle.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @Module({
@@ -15,7 +17,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
       signOptions: { expiresIn: process.env.AUTH_SESSION_TTL ?? "15m" },
     }),
   ],
-  controllers: [ProfilesController],
-  providers: [ProfilesService, JwtAuthGuard],
+  controllers: [ProfilesController, LifestyleController],
+  providers: [ProfilesService, LifestyleService, JwtAuthGuard],
 })
 export class ProfilesModule {}
