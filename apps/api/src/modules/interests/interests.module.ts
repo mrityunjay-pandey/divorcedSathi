@@ -6,11 +6,13 @@ import { InterestsService } from "./interests.service";
 import { ShortlistController, ShortlistService } from "./shortlist.controller";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { SafetyModule } from "../safety/safety.module";
 
 @Module({
   imports: [
     PrismaModule,
     NotificationsModule,
+    SafetyModule,
     JwtModule.register({
       secret: process.env.AUTH_JWT_SECRET ?? "dev-only-insecure-secret-change-me",
       signOptions: { expiresIn: process.env.AUTH_SESSION_TTL ?? "15m" },

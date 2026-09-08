@@ -13,6 +13,7 @@ import { MessagingModule } from "./modules/messaging/messaging.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { VerificationModule } from "./modules/verification/verification.module";
 import { PrivacyModule } from "./modules/privacy/privacy.module";
+import { SafetyModule } from "./modules/safety/safety.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -33,6 +34,7 @@ import { HealthController } from "./health.controller";
     NotificationsModule,
     VerificationModule,
     PrivacyModule,
+    SafetyModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

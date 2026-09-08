@@ -3,6 +3,7 @@ import { PrismaService } from "@/common/prisma/prisma.module";
 import { AppException } from "@/common/errors/app-exception";
 import { ErrorCode } from "@/common/errors/error-codes";
 import { NotificationsService } from "../notifications/notifications.service";
+import { BlockService } from "../safety/block.service";
 import { NotificationType } from "@divorcedsathi/db";
 import type { Conversation, Match, Message } from "@divorcedsathi/db";
 
@@ -17,6 +18,7 @@ export class MessagingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly blocks: BlockService,
   ) {}
 
   /**
@@ -55,9 +57,17 @@ export class MessagingService {
 
   async sendMessage(conversationId: string, senderId: string, content: string): Promise<Message> {
     const conversation = await this.requireParticipantConversation(conversationId, senderId);
-    const message = await this.prisma.client.message.create({ data: { conversationId, senderId, content } });
 
     const recipientId = conversation.match.userAId === senderId ? conversation.match.userBId : conversation.match.userAId;
+
+    // A block created AFTER a match already exists (e.g. one party blocks
+    // the other mid-conversation) must still stop new messages — checked
+    // fresh on every send, not just once at match/conversation creation.
+    if (await this.blocks.isBlockedEitherDirection(senderId, recipientId)) {
+      throw new AppException(ErrorCode.BLOCKED, "You can't message this user.", HttpStatus.FORBIDDEN);
+    }
+
+    const message = await this.prisma.client.message.create({ data: { conversationId, senderId, content } });
     await this.notifications.create(recipientId, NotificationType.NEW_MESSAGE, { conversationId, messageId: message.id });
 
     return message;

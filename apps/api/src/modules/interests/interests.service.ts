@@ -3,6 +3,7 @@ import { PrismaService } from "@/common/prisma/prisma.module";
 import { AppException } from "@/common/errors/app-exception";
 import { ErrorCode } from "@/common/errors/error-codes";
 import { NotificationsService } from "../notifications/notifications.service";
+import { BlockService } from "../safety/block.service";
 import { NotificationType } from "@divorcedsathi/db";
 import type { Interest } from "@divorcedsathi/db";
 
@@ -11,11 +12,19 @@ export class InterestsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly blocks: BlockService,
   ) {}
 
   async send(senderId: string, recipientId: string): Promise<Interest> {
     if (senderId === recipientId) {
       throw new AppException(ErrorCode.CANNOT_TARGET_SELF, "You can't send an interest to yourself.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (await this.blocks.isBlockedEitherDirection(senderId, recipientId)) {
+      // Same generic phrasing as if the profile simply didn't exist — never
+      // confirm to the sender that a block is the specific reason, which
+      // would leak the block's existence back to the blocked party.
+      throw new AppException(ErrorCode.NOT_FOUND, "This profile isn't available.", HttpStatus.NOT_FOUND);
     }
 
     const existing = await this.prisma.client.interest.findUnique({

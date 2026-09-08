@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { InterestsService } from "./interests.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
+import { BlockService } from "../safety/block.service";
 import { ErrorCode } from "@/common/errors/error-codes";
 import { NotificationType, type Interest } from "@divorcedsathi/db";
 
@@ -29,6 +30,7 @@ describe("InterestsService", () => {
   let service: InterestsService;
   let prisma: MockPrisma;
   let notifications: { create: jest.Mock };
+  let blocks: { isBlockedEitherDirection: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -39,12 +41,14 @@ describe("InterestsService", () => {
       },
     };
     notifications = { create: jest.fn() };
+    blocks = { isBlockedEitherDirection: jest.fn().mockResolvedValue(false) };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         InterestsService,
         { provide: PrismaService, useValue: prisma },
         { provide: NotificationsService, useValue: notifications },
+        { provide: BlockService, useValue: blocks },
       ],
     }).compile();
 
@@ -54,6 +58,14 @@ describe("InterestsService", () => {
   describe("send", () => {
     it("rejects sending an interest to yourself", async () => {
       await expect(service.send("user-1", "user-1")).rejects.toMatchObject({ code: ErrorCode.CANNOT_TARGET_SELF });
+      expect(prisma.client.interest.create).not.toHaveBeenCalled();
+    });
+
+    it("rejects sending an interest across a block in either direction", async () => {
+      blocks.isBlockedEitherDirection.mockResolvedValueOnce(true);
+
+      await expect(service.send("user-1", "user-2")).rejects.toMatchObject({ code: ErrorCode.NOT_FOUND });
+      expect(prisma.client.interest.findUnique).not.toHaveBeenCalled();
       expect(prisma.client.interest.create).not.toHaveBeenCalled();
     });
 

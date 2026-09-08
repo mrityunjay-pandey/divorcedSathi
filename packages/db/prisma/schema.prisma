@@ -64,6 +64,11 @@ model User {
   notifications     Notification[]
   verifications     Verification[]  @relation("VerificationSubject")
   verificationsReviewed Verification[] @relation("VerificationReviewer")
+  reportsMade       Report[]        @relation("ReportReporter")
+  reportsReceived   Report[]        @relation("ReportSubject")
+  reportsReviewed   Report[]        @relation("ReportReviewer")
+  blocksInitiated   Block[]         @relation("BlockInitiator")
+  blocksReceived    Block[]         @relation("BlockTarget")
 
   @@index([email])
   @@index([mobileNumber])
@@ -562,4 +567,64 @@ model PrivacySetting {
 
   createdAt                   DateTime        @default(now())
   updatedAt                   DateTime        @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Module 14 — Reporting & Blocking (brief §27/§28)
+// ---------------------------------------------------------------------------
+
+enum ReportReason {
+  FAKE_PROFILE
+  SCAM
+  HARASSMENT
+  ABUSE
+  INAPPROPRIATE_CONTENT
+  MISREPRESENTATION
+  SOLICITATION
+  FINANCIAL_SCAM
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  ACTION_TAKEN
+  DISMISSED
+}
+
+model Report {
+  id               String       @id @default(uuid())
+  reporterId       String
+  reporter         User         @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUserId   String
+  reportedUser     User         @relation("ReportSubject", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reason           ReportReason
+  description      String?      @db.Text
+  status           ReportStatus @default(PENDING)
+  createdAt        DateTime     @default(now())
+  reviewedAt       DateTime?
+  reviewedByAdminId String?
+  reviewedByAdmin  User?        @relation("ReportReviewer", fields: [reviewedByAdminId], references: [id])
+
+  @@index([reportedUserId])
+  @@index([status])
+}
+
+/// Blocking is enforced at the backend across search, discovery, interests,
+/// and messaging (brief §28: "Implement this at the backend level, not
+/// merely the frontend") — see Module 14 commit notes for exactly which
+/// read/write paths currently consult this table. Directional: A blocking
+/// B doesn't require B to have blocked A, but every enforcement check is
+/// bidirectional (either direction having a row hides/blocks interaction),
+/// since the point is mutual non-contact regardless of who initiated it.
+model Block {
+  id            String   @id @default(uuid())
+  blockerId     String
+  blocker       User     @relation("BlockInitiator", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedUserId String
+  blockedUser   User     @relation("BlockTarget", fields: [blockedUserId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+  @@unique([blockerId, blockedUserId])
+  @@index([blockedUserId])
 }

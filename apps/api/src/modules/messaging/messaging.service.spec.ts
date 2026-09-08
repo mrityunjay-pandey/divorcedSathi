@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { MessagingService } from "./messaging.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
+import { BlockService } from "../safety/block.service";
 import { ErrorCode } from "@/common/errors/error-codes";
 import { NotificationType, type Conversation, type Match, type Message } from "@divorcedsathi/db";
 
@@ -25,6 +26,7 @@ describe("MessagingService", () => {
   let service: MessagingService;
   let prisma: MockPrisma;
   let notifications: { create: jest.Mock };
+  let blocks: { isBlockedEitherDirection: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -35,12 +37,14 @@ describe("MessagingService", () => {
       },
     };
     notifications = { create: jest.fn() };
+    blocks = { isBlockedEitherDirection: jest.fn().mockResolvedValue(false) };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         MessagingService,
         { provide: PrismaService, useValue: prisma },
         { provide: NotificationsService, useValue: notifications },
+        { provide: BlockService, useValue: blocks },
       ],
     }).compile();
 
@@ -129,6 +133,14 @@ describe("MessagingService", () => {
       await service.sendMessage("conv-1", "user-1", "hello");
 
       expect(notifications.create).toHaveBeenCalledWith("user-2", NotificationType.NEW_MESSAGE, expect.objectContaining({ conversationId: "conv-1" }));
+    });
+
+    it("rejects sending a message once either party has blocked the other, even in an existing conversation", async () => {
+      prisma.client.conversation.findUnique.mockResolvedValueOnce({ ...baseConversation(), match: baseMatch() });
+      blocks.isBlockedEitherDirection.mockResolvedValueOnce(true);
+
+      await expect(service.sendMessage("conv-1", "user-1", "hello")).rejects.toMatchObject({ code: ErrorCode.BLOCKED });
+      expect(prisma.client.message.create).not.toHaveBeenCalled();
     });
   });
 

@@ -247,3 +247,33 @@ export const VISIBILITY_OPTIONS: { label: string; value: VisibilityLevel }[] = [
   { label: "Only people I approve", value: "APPROVED" },
   { label: "Nobody", value: "NOBODY" },
 ];
+
+export type ReportReason =
+  | "FAKE_PROFILE"
+  | "SCAM"
+  | "HARASSMENT"
+  | "ABUSE"
+  | "INAPPROPRIATE_CONTENT"
+  | "MISREPRESENTATION"
+  | "SOLICITATION"
+  | "FINANCIAL_SCAM"
+  | "OTHER";
+
+export const REPORT_REASON_OPTIONS: { label: string; value: ReportReason }[] = [
+  { label: "Fake profile", value: "FAKE_PROFILE" },
+  { label: "Scam", value: "SCAM" },
+  { label: "Harassment", value: "HARASSMENT" },
+  { label: "Abuse", value: "ABUSE" },
+  { label: "Inappropriate content", value: "INAPPROPRIATE_CONTENT" },
+  { label: "Misrepresentation", value: "MISREPRESENTATION" },
+  { label: "Solicitation", value: "SOLICITATION" },
+  { label: "Financial scam", value: "FINANCIAL_SCAM" },
+  { label: "Other", value: "OTHER" },
+];
+
+export interface BlockedUser {
+  id: string;
+  blockerId: string;
+  blockedUserId: string;
+  createdAt: string;
+}
