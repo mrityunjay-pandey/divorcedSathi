@@ -8,8 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "echo 'No app modules implemented yet. See docs/ROADMAP.md.'",
-    "build": "echo 'No app modules implemented yet. See docs/ROADMAP.md.'",
-    "test": "echo 'No tests yet. See docs/ROADMAP.md.'"
+    "dev": "npm run dev --workspace=@divorcedsathi/web",
+    "build": "npm run build --workspace=@divorcedsathi/web",
+    "test": "npm run test --workspace=@divorcedsathi/web",
+    "typecheck": "npm run typecheck --workspace=@divorcedsathi/web"
   }
 }
