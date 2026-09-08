@@ -9,10 +9,12 @@ import { ErrorState } from "@/components/ui/States";
 import { WizardProgress, type WizardStepDefinition } from "@/components/profile-wizard/WizardProgress";
 import { BasicInfoStep } from "@/components/profile-wizard/BasicInfoStep";
 import { AboutMeStep } from "@/components/profile-wizard/AboutMeStep";
+import { PreviousMarriageStep } from "@/components/profile-wizard/PreviousMarriageStep";
+import { FamilyStep } from "@/components/profile-wizard/FamilyStep";
 import { LifestyleStep } from "@/components/profile-wizard/LifestyleStep";
 import { ComingSoonStep } from "@/components/profile-wizard/ComingSoonStep";
 import { api, ApiError } from "@/lib/api-client";
-import type { Lifestyle, Profile } from "@/types/profile";
+import type { FamilyDetails, Lifestyle, PreviousMarriage, Profile } from "@/types/profile";
 
 const STEPS: WizardStepDefinition[] = [
   { key: "basic-info", label: "Basic Info" },
@@ -35,6 +37,8 @@ export default function CreateProfilePage() {
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [lifestyle, setLifestyle] = useState<Lifestyle | null>(null);
+  const [previousMarriage, setPreviousMarriage] = useState<PreviousMarriage | null>(null);
+  const [familyDetails, setFamilyDetails] = useState<FamilyDetails | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +54,22 @@ export default function CreateProfilePage() {
           if (!cancelled) setLifestyle(existingLifestyle);
         } catch {
           // No lifestyle row yet is expected for a brand-new profile — not fatal.
+        }
+
+        try {
+          const { previousMarriage: existing } = await api.get<{ previousMarriage: PreviousMarriage | null }>(
+            "/profiles/me/previous-marriage",
+          );
+          if (!cancelled) setPreviousMarriage(existing);
+        } catch {
+          // Not fatal — no record yet.
+        }
+
+        try {
+          const { familyDetails: existing } = await api.get<{ familyDetails: FamilyDetails | null }>("/profiles/me/family");
+          if (!cancelled) setFamilyDetails(existing);
+        } catch {
+          // Not fatal — no record yet.
         }
 
         if (!cancelled) setLoadState("ready");
@@ -144,6 +164,36 @@ export default function CreateProfilePage() {
 
         {activeStep.key === "about-me" && <AboutMeStep initial={profile?.aboutMe ?? undefined} onSaved={goToNextStep} />}
 
+        {activeStep.key === "previous-marriage" && (
+          <PreviousMarriageStep
+            initial={
+              previousMarriage
+                ? {
+                    marriedYear: previousMarriage.marriedYear?.toString() ?? "",
+                    endedYear: previousMarriage.endedYear?.toString() ?? "",
+                    divorceFinalized: previousMarriage.divorceFinalized,
+                    additionalInfo: previousMarriage.additionalInfo ?? "",
+                  }
+                : undefined
+            }
+            onSaved={goToNextStep}
+          />
+        )}
+
+        {activeStep.key === "family" && (
+          <FamilyStep
+            initial={
+              familyDetails
+                ? {
+                    childrenCount: familyDetails.childrenCount,
+                    childrenLivingArrangement: familyDetails.childrenLivingArrangement ?? undefined,
+                  }
+                : undefined
+            }
+            onSaved={goToNextStep}
+          />
+        )}
+
         {activeStep.key === "lifestyle" && (
           <LifestyleStep
             initial={
@@ -165,7 +215,7 @@ export default function CreateProfilePage() {
           />
         )}
 
-        {!["basic-info", "about-me", "lifestyle"].includes(activeStep.key) && (
+        {!["basic-info", "about-me", "previous-marriage", "family", "lifestyle"].includes(activeStep.key) && (
           <ComingSoonStep title={activeStep.label} onSkip={goToNextStep} />
         )}
       </Card>

@@ -164,6 +164,8 @@ model Profile {
   aboutMe        String?         @db.Text
 
   lifestyle      Lifestyle?
+  previousMarriage PreviousMarriage?
+  familyDetails    FamilyDetails?
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -231,4 +233,66 @@ enum HabitFrequency {
   OCCASIONALLY
   REGULARLY
   PREFER_NOT_TO_SAY
+}
+
+// ---------------------------------------------------------------------------
+// Module 5 — Previous Marriage & Family/Children (brief §13/§14)
+// ---------------------------------------------------------------------------
+// This is the most sensitive data on the platform, so it's split by
+// visibility at the schema level, not just at the API layer:
+//   - `divorceFinalized` (+ the derived public summary built from it) is the
+//     only previous-marriage fact ever meant to reach another member by
+//     default (brief §13: "Public: Previously married • Divorce finalized").
+//   - `marriedYear`/`endedYear`/`additionalInfo` are private-by-default detail
+//     that only the owner (and, later, admins handling reports) ever reads.
+//     There is deliberately no "court case number" or legal-document field —
+//     the brief explicitly says never to display or ask for that.
+//
+// Deviation from the ER sketch in docs/ARCHITECTURE.md: that doc lists
+// "Profile 1—* Child" (one row per child). The actual UI in brief §14 only
+// ever collects a children *count* bucket and a single living-arrangement
+// value — never per-child details — so a single FamilyDetails row per
+// profile is the right shape for what's actually being asked, not an
+// under-used one-to-many table.
+
+model PreviousMarriage {
+  id               String   @id @default(uuid())
+  profileId        String   @unique
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  marriedYear      Int?
+  endedYear        Int?
+  divorceFinalized Boolean  @default(false)
+  /// Private-only free text (brief §13's "Additional information"). Never
+  /// returned by PreviousMarriageService.getPublicSummary.
+  additionalInfo   String?  @db.Text
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model FamilyDetails {
+  id                        String              @id @default(uuid())
+  profileId                 String              @unique
+  profile                   Profile             @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  childrenCount             ChildrenCount        @default(NONE)
+  childrenLivingArrangement LivingArrangement?
+
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+}
+
+enum ChildrenCount {
+  NONE
+  ONE
+  TWO
+  THREE_OR_MORE
+}
+
+enum LivingArrangement {
+  WITH_ME
+  WITH_OTHER_PARENT
+  SHARED
+  OTHER
 }

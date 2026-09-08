@@ -34,6 +34,25 @@ export interface Lifestyle {
   socialLifestyle: string | null;
 }
 
+export interface PreviousMarriage {
+  id: string;
+  profileId: string;
+  marriedYear: number | null;
+  endedYear: number | null;
+  divorceFinalized: boolean;
+  additionalInfo: string | null;
+}
+
+export type ChildrenCount = "NONE" | "ONE" | "TWO" | "THREE_OR_MORE";
+export type LivingArrangement = "WITH_ME" | "WITH_OTHER_PARENT" | "SHARED" | "OTHER";
+
+export interface FamilyDetails {
+  id: string;
+  profileId: string;
+  childrenCount: ChildrenCount;
+  childrenLivingArrangement: LivingArrangement | null;
+}
+
 export const EMPLOYMENT_TYPE_OPTIONS: { label: string; value: EmploymentType }[] = [
   { label: "Salaried", value: "SALARIED" },
   { label: "Self-employed", value: "SELF_EMPLOYED" },
