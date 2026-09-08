@@ -5,6 +5,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ProfilesModule } from "./modules/profiles/profiles.module";
 import { FamilyModule } from "./modules/family/family.module";
+import { PreferencesModule } from "./modules/preferences/preferences.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -17,6 +18,7 @@ import { HealthController } from "./health.controller";
     AuthModule,
     ProfilesModule,
     FamilyModule,
+    PreferencesModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

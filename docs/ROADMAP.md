@@ -24,7 +24,7 @@ No module is skipped silently if its tests fail. No previously completed module 
 - [x] Module 3 — Database core & base User/Profile models
 - [x] Module 4 — Profile creation wizard (steps 1–6: basic info → education/career)
 - [x] Module 5 — Previous marriage & family/children module
-- [ ] Module 6 — Partner preferences
+- [x] Module 6 — Partner preferences
 - [ ] Module 7 — Search & filters
 - [ ] Module 8 — Discovery dashboard & compatibility scoring
 - [ ] Module 9 — Interests & shortlist

@@ -12,9 +12,10 @@ import { AboutMeStep } from "@/components/profile-wizard/AboutMeStep";
 import { PreviousMarriageStep } from "@/components/profile-wizard/PreviousMarriageStep";
 import { FamilyStep } from "@/components/profile-wizard/FamilyStep";
 import { LifestyleStep } from "@/components/profile-wizard/LifestyleStep";
+import { PartnerPreferencesStep } from "@/components/profile-wizard/PartnerPreferencesStep";
 import { ComingSoonStep } from "@/components/profile-wizard/ComingSoonStep";
 import { api, ApiError } from "@/lib/api-client";
-import type { FamilyDetails, Lifestyle, PreviousMarriage, Profile } from "@/types/profile";
+import type { FamilyDetails, Lifestyle, PartnerPreference, PreviousMarriage, Profile } from "@/types/profile";
 
 const STEPS: WizardStepDefinition[] = [
   { key: "basic-info", label: "Basic Info" },
@@ -39,6 +40,7 @@ export default function CreateProfilePage() {
   const [lifestyle, setLifestyle] = useState<Lifestyle | null>(null);
   const [previousMarriage, setPreviousMarriage] = useState<PreviousMarriage | null>(null);
   const [familyDetails, setFamilyDetails] = useState<FamilyDetails | null>(null);
+  const [partnerPreference, setPartnerPreference] = useState<PartnerPreference | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +70,15 @@ export default function CreateProfilePage() {
         try {
           const { familyDetails: existing } = await api.get<{ familyDetails: FamilyDetails | null }>("/profiles/me/family");
           if (!cancelled) setFamilyDetails(existing);
+        } catch {
+          // Not fatal — no record yet.
+        }
+
+        try {
+          const { preferences: existing } = await api.get<{ preferences: PartnerPreference | null }>(
+            "/profiles/me/partner-preferences",
+          );
+          if (!cancelled) setPartnerPreference(existing);
         } catch {
           // Not fatal — no record yet.
         }
@@ -215,7 +226,31 @@ export default function CreateProfilePage() {
           />
         )}
 
-        {!["basic-info", "about-me", "previous-marriage", "family", "lifestyle"].includes(activeStep.key) && (
+        {activeStep.key === "partner-preferences" && (
+          <PartnerPreferencesStep
+            initial={
+              partnerPreference
+                ? {
+                    ageMin: partnerPreference.ageMin?.toString() ?? "",
+                    ageMax: partnerPreference.ageMax?.toString() ?? "",
+                    preferredCities: partnerPreference.preferredCities.join(", "),
+                    preferredStates: partnerPreference.preferredStates.join(", "),
+                    willingToRelocate: partnerPreference.willingToRelocate ?? false,
+                    preferredEducation: partnerPreference.preferredEducation.join(", "),
+                    preferredProfessions: partnerPreference.preferredProfessions.join(", "),
+                    minIncomeRange: partnerPreference.minIncomeRange ?? undefined,
+                    previousMarriagePreferences: partnerPreference.previousMarriagePreferences,
+                    openToAnyMarriageStatus: partnerPreference.openToAnyMarriageStatus,
+                    childrenPreference: partnerPreference.childrenPreference,
+                    otherPreferences: partnerPreference.otherPreferences ?? "",
+                  }
+                : undefined
+            }
+            onSaved={goToNextStep}
+          />
+        )}
+
+        {!["basic-info", "about-me", "previous-marriage", "family", "lifestyle", "partner-preferences"].includes(activeStep.key) && (
           <ComingSoonStep title={activeStep.label} onSkip={goToNextStep} />
         )}
       </Card>

@@ -166,6 +166,7 @@ model Profile {
   lifestyle      Lifestyle?
   previousMarriage PreviousMarriage?
   familyDetails    FamilyDetails?
+  partnerPreference PartnerPreference?
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -295,4 +296,48 @@ enum LivingArrangement {
   WITH_OTHER_PARENT
   SHARED
   OTHER
+}
+
+// ---------------------------------------------------------------------------
+// Module 6 — Partner Preferences (brief §16)
+// ---------------------------------------------------------------------------
+// Array columns (Postgres-native, no join table needed) for the genuinely
+// multi-select fields brief §16 describes ("Education: Multiple selections",
+// "Profession: Multiple selections", previous-marriage preference as a set
+// of acceptable circumstances). Free-text fields stay as plain strings for
+// MVP, same rationale as Lifestyle.
+
+model PartnerPreference {
+  id                          String                       @id @default(uuid())
+  profileId                   String                       @unique
+  profile                     Profile                      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  ageMin                      Int?
+  ageMax                      Int?
+
+  preferredCities             String[]
+  preferredStates             String[]
+  preferredCountries          String[]
+  willingToRelocate           Boolean?
+
+  preferredEducation          String[]
+  preferredProfessions        String[]
+  minIncomeRange              IncomeRange?
+
+  previousMarriagePreferences MarriageStatus[]
+  openToAnyMarriageStatus     Boolean                      @default(false)
+
+  childrenPreference          ChildrenPreference           @default(OPEN_TO_EITHER)
+
+  lifestylePreferences        String?
+  otherPreferences            String?                      @db.Text
+
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+}
+
+enum ChildrenPreference {
+  NO_CHILDREN
+  HAS_CHILDREN
+  OPEN_TO_EITHER
 }

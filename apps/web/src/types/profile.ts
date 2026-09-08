@@ -53,6 +53,27 @@ export interface FamilyDetails {
   childrenLivingArrangement: LivingArrangement | null;
 }
 
+export type ChildrenPreference = "NO_CHILDREN" | "HAS_CHILDREN" | "OPEN_TO_EITHER";
+
+export interface PartnerPreference {
+  id: string;
+  profileId: string;
+  ageMin: number | null;
+  ageMax: number | null;
+  preferredCities: string[];
+  preferredStates: string[];
+  preferredCountries: string[];
+  willingToRelocate: boolean | null;
+  preferredEducation: string[];
+  preferredProfessions: string[];
+  minIncomeRange: IncomeRange | null;
+  previousMarriagePreferences: ("DIVORCED" | "WIDOWED" | "SEPARATED" | "ANNULLED")[];
+  openToAnyMarriageStatus: boolean;
+  childrenPreference: ChildrenPreference;
+  lifestylePreferences: string | null;
+  otherPreferences: string | null;
+}
+
 export const EMPLOYMENT_TYPE_OPTIONS: { label: string; value: EmploymentType }[] = [
   { label: "Salaried", value: "SALARIED" },
   { label: "Self-employed", value: "SELF_EMPLOYED" },
@@ -83,4 +104,17 @@ export const HABIT_FREQUENCY_OPTIONS: { label: string; value: HabitFrequency }[]
   { label: "Occasionally", value: "OCCASIONALLY" },
   { label: "Regularly", value: "REGULARLY" },
   { label: "Prefer not to say", value: "PREFER_NOT_TO_SAY" },
+];
+
+export const CHILDREN_PREFERENCE_OPTIONS: { label: string; value: ChildrenPreference }[] = [
+  { label: "Prefer a partner without children", value: "NO_CHILDREN" },
+  { label: "Comfortable with a partner who has children", value: "HAS_CHILDREN" },
+  { label: "Open to either", value: "OPEN_TO_EITHER" },
+];
+
+export const MARRIAGE_STATUS_OPTIONS: { label: string; value: "DIVORCED" | "WIDOWED" | "SEPARATED" | "ANNULLED" }[] = [
+  { label: "Divorced", value: "DIVORCED" },
+  { label: "Widowed", value: "WIDOWED" },
+  { label: "Separated", value: "SEPARATED" },
+  { label: "Annulled marriage", value: "ANNULLED" },
 ];
