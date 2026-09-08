@@ -139,3 +139,32 @@ export interface SearchResult {
   pageSize: number;
   total: number;
 }
+
+export interface CompatibilityScore {
+  total: number;
+  breakdown: {
+    location: number;
+    age: number;
+    childrenFamily: number;
+    marriagePreference: number;
+    educationCareer: number;
+  };
+  basis: string;
+}
+
+export interface DiscoveryCard {
+  profileId: string;
+  firstName: string;
+  age: number;
+  city: string;
+  state: string | null;
+  profession: string | null;
+  education: string | null;
+  previousMarriage: { previouslyMarried: true; divorceFinalized: boolean } | null;
+  compatibility: CompatibilityScore | null;
+}
+
+export interface DiscoveryDashboard {
+  recommended: DiscoveryCard[];
+  newProfiles: DiscoveryCard[];
+}
