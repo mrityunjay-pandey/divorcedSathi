@@ -1,0 +1,23 @@
+// DivorcedSathi.com — Prisma schema (design reference only)
+//
+// This file documents the intended entity list from docs/ARCHITECTURE.md §3.
+// Real models, fields, enums, and relations will be defined incrementally
+// as each module is built (Module 2: Auth/User, Module 3: base Profile,
+// Module 5: PreviousMarriage/Child, etc.) so migrations stay reviewable.
+//
+// Planned entities:
+// User, Profile, ProfilePhoto, PartnerPreference, PreviousMarriage, Child,
+// Lifestyle, Education, Career, Interest, Match, Shortlist, Conversation,
+// Message, Notification, Verification, Report, Block, Subscription,
+// Payment, AdminUser, AuditLog, PrivacySetting, SavedSearch, ProfileView
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Models are added module-by-module. Nothing implemented yet.

@@ -1,0 +1,15 @@
+{
+  "name": "divorcedsathi",
+  "private": true,
+  "version": "0.0.0",
+  "description": "DivorcedSathi.com — matrimonial platform monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "echo 'No app modules implemented yet. See docs/ROADMAP.md.'",
+    "build": "echo 'No app modules implemented yet. See docs/ROADMAP.md.'",
+    "test": "echo 'No tests yet. See docs/ROADMAP.md.'"
+  }
+}
