@@ -101,6 +101,7 @@ describe("SearchService", () => {
     expect(profile).not.toHaveProperty("aboutMe");
     expect(profile).toEqual({
       profileId: "profile-2",
+      userId: "user-2",
       firstName: "Ananya",
       age: 35,
       city: "Mumbai",

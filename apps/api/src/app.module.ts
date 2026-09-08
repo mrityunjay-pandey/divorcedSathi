@@ -8,6 +8,7 @@ import { FamilyModule } from "./modules/family/family.module";
 import { PreferencesModule } from "./modules/preferences/preferences.module";
 import { SearchModule } from "./modules/search/search.module";
 import { DiscoveryModule } from "./modules/discovery/discovery.module";
+import { InterestsModule } from "./modules/interests/interests.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -23,6 +24,7 @@ import { HealthController } from "./health.controller";
     PreferencesModule,
     SearchModule,
     DiscoveryModule,
+    InterestsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

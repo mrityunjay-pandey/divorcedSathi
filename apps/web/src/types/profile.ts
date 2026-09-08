@@ -121,6 +121,7 @@ export const MARRIAGE_STATUS_OPTIONS: { label: string; value: "DIVORCED" | "WIDO
 
 export interface SearchResultProfile {
   profileId: string;
+  userId: string;
   firstName: string;
   age: number;
   city: string;
@@ -154,6 +155,7 @@ export interface CompatibilityScore {
 
 export interface DiscoveryCard {
   profileId: string;
+  userId: string;
   firstName: string;
   age: number;
   city: string;
@@ -167,4 +169,15 @@ export interface DiscoveryCard {
 export interface DiscoveryDashboard {
   recommended: DiscoveryCard[];
   newProfiles: DiscoveryCard[];
+}
+
+export type InterestStatus = "PENDING" | "ACCEPTED" | "DECLINED";
+
+export interface Interest {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  status: InterestStatus;
+  createdAt: string;
+  respondedAt: string | null;
 }

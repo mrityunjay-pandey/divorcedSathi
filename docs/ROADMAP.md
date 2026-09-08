@@ -27,7 +27,7 @@ No module is skipped silently if its tests fail. No previously completed module 
 - [x] Module 6 — Partner preferences
 - [x] Module 7 — Search & filters
 - [x] Module 8 — Discovery dashboard & compatibility scoring
-- [ ] Module 9 — Interests & shortlist
+- [x] Module 9 — Interests & shortlist
 - [ ] Module 10 — Matches/connections & messaging
 - [ ] Module 11 — Notifications
 - [ ] Module 12 — Verification (mobile/email/ID)

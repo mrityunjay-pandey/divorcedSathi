@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/States";
+import { ProfileActionButtons } from "@/components/profile/ProfileActionButtons";
 import { api, ApiError } from "@/lib/api-client";
 import type { SearchResult } from "@/types/profile";
 
@@ -123,10 +124,7 @@ export default function SearchPage() {
                   {profile.religion && <Badge tone="neutral">{profile.religion}</Badge>}
                 </CardContent>
                 <CardFooter>
-                  <Button size="sm">Send Interest</Button>
-                  <Button size="sm" variant="outline">
-                    Shortlist
-                  </Button>
+                  <ProfileActionButtons targetUserId={profile.userId} />
                 </CardFooter>
               </Card>
             ))}

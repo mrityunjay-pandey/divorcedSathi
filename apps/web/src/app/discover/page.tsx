@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/Tabs";
+import { ProfileActionButtons } from "@/components/profile/ProfileActionButtons";
 import { api, ApiError } from "@/lib/api-client";
 import type { DiscoveryCard, DiscoveryDashboard } from "@/types/profile";
 
@@ -38,10 +38,7 @@ function ProfileCard({ card }: { card: DiscoveryCard }) {
         <CompatibilityBadge card={card} />
       </CardContent>
       <CardFooter>
-        <Button size="sm">Send Interest</Button>
-        <Button size="sm" variant="outline">
-          Shortlist
-        </Button>
+        <ProfileActionButtons targetUserId={card.userId} />
       </CardFooter>
     </Card>
   );

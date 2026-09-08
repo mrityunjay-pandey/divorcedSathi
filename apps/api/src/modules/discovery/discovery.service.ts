@@ -13,6 +13,7 @@ const CANDIDATE_POOL_SIZE = 200;
 
 export interface DiscoveryCard {
   profileId: string;
+  userId: string;
   firstName: string;
   age: number;
   city: string;
@@ -99,6 +100,7 @@ export class DiscoveryService {
 
           const card: DiscoveryCard = {
             profileId: c.profile.id,
+            userId: c.id,
             firstName: c.firstName,
             age: calculateAge(c.dateOfBirth),
             city: c.profile.city,
@@ -131,6 +133,7 @@ export class DiscoveryService {
         .filter((c): c is typeof c & { profile: NonNullable<typeof c.profile> } => !!c.profile)
         .map(async (c) => ({
           profileId: c.profile.id,
+          userId: c.id,
           firstName: c.firstName,
           age: calculateAge(c.dateOfBirth),
           city: c.profile.city,

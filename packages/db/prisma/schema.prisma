@@ -54,6 +54,13 @@ model User {
   otpCodes        OtpCode[]
   profile         Profile?
 
+  interestsSent     Interest[] @relation("InterestsSent")
+  interestsReceived Interest[] @relation("InterestsReceived")
+  shortlistedBy     Shortlist[] @relation("ShortlistOwner")
+  shortlistedByOthers Shortlist[] @relation("ShortlistTarget")
+  matchesAsA        Match[]    @relation("MatchUserA")
+  matchesAsB        Match[]    @relation("MatchUserB")
+
   @@index([email])
   @@index([mobileNumber])
   @@index([gender])
@@ -344,4 +351,65 @@ enum ChildrenPreference {
   NO_CHILDREN
   HAS_CHILDREN
   OPEN_TO_EITHER
+}
+
+// ---------------------------------------------------------------------------
+// Module 9 — Interests, Matches, Shortlist (brief §22/§23)
+// ---------------------------------------------------------------------------
+
+enum InterestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model Interest {
+  id           String         @id @default(uuid())
+  senderId     String
+  sender       User           @relation("InterestsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId  String
+  recipient    User           @relation("InterestsReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+  status       InterestStatus @default(PENDING)
+  createdAt    DateTime       @default(now())
+  respondedAt  DateTime?
+
+  match        Match?
+
+  /// One active interest per direction — resending after a decline is a
+  /// deliberate product decision for a later module (e.g. a cooldown period),
+  /// not something this schema silently allows via duplicate rows today.
+  @@unique([senderId, recipientId])
+  @@index([recipientId, status])
+}
+
+/// Created the moment an Interest is accepted (brief: "Interest Accepted ->
+/// Match Created"). userAId/userBId are stored with the numerically/
+/// lexically smaller id first (enforced in the service, not the schema) so
+/// the @@unique constraint catches a match existing regardless of which
+/// direction a future duplicate-creation attempt comes from.
+model Match {
+  id         String   @id @default(uuid())
+  interestId String   @unique
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  userAId    String
+  userA      User     @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userBId    String
+  userB      User     @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+}
+
+model Shortlist {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation("ShortlistOwner", fields: [userId], references: [id], onDelete: Cascade)
+  targetUserId String
+  targetUser   User     @relation("ShortlistTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, targetUserId])
+  @@index([userId])
 }

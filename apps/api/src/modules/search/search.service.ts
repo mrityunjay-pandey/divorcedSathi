@@ -17,6 +17,7 @@ const DEFAULT_PAGE_SIZE = 20;
  */
 export interface SearchResultProfile {
   profileId: string;
+  userId: string;
   firstName: string;
   age: number;
   city: string;
@@ -118,6 +119,7 @@ export class SearchService {
     const results = await Promise.all(
       usersWithProfile.map(async (u) => ({
         profileId: u.profile.id,
+        userId: u.id,
         firstName: u.firstName,
         age: calculateAge(u.dateOfBirth),
         city: u.profile.city,
