@@ -118,3 +118,24 @@ export const MARRIAGE_STATUS_OPTIONS: { label: string; value: "DIVORCED" | "WIDO
   { label: "Separated", value: "SEPARATED" },
   { label: "Annulled marriage", value: "ANNULLED" },
 ];
+
+export interface SearchResultProfile {
+  profileId: string;
+  firstName: string;
+  age: number;
+  city: string;
+  state: string | null;
+  country: string;
+  education: string | null;
+  profession: string | null;
+  heightCm: number | null;
+  religion: string | null;
+  previousMarriage: { previouslyMarried: true; divorceFinalized: boolean } | null;
+}
+
+export interface SearchResult {
+  results: SearchResultProfile[];
+  page: number;
+  pageSize: number;
+  total: number;
+}

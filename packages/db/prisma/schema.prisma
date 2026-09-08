@@ -56,6 +56,9 @@ model User {
 
   @@index([email])
   @@index([mobileNumber])
+  @@index([gender])
+  @@index([marriageStatus])
+  @@index([dateOfBirth])
 }
 
 enum UserRole {
@@ -172,6 +175,7 @@ model Profile {
   updatedAt      DateTime        @updatedAt
 
   @@index([city])
+  @@index([religion])
 }
 
 enum EmploymentType {
