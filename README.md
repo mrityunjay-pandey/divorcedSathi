@@ -24,14 +24,21 @@ packages/
 docs/       Architecture, roadmap, ADRs
 ```
 
-## Getting started (once modules exist)
+## Getting started
 
 ```bash
-corepack enable
-pnpm install
-cp .env.example .env
-pnpm --filter @divorcedsathi/db prisma migrate dev
-pnpm dev
+npm install --include-workspace-root
+cp .env.example .env         # then fill in DATABASE_URL, AUTH_JWT_SECRET, etc.
+npm run generate --workspace=@divorcedsathi/db
+npm run migrate:dev --workspace=@divorcedsathi/db
+npm run dev --workspace=@divorcedsathi/api   # NestJS API on :4000
+npm run dev --workspace=@divorcedsathi/web   # Next.js app on :3000
 ```
 
-Nothing runs yet — there is no application code, only structure and docs.
+Run tests / typecheck for a given workspace with `--workspace=@divorcedsathi/<name>`,
+e.g. `npm test --workspace=@divorcedsathi/api`.
+
+> **Sandboxed dev-tool note:** `prisma generate` and `prisma migrate` download engine
+> binaries from `binaries.prisma.sh`. If you're running this inside a network-restricted
+> sandbox (as this repo was originally scaffolded in), that domain may not be reachable —
+> run those two commands from an environment with normal internet access first.
