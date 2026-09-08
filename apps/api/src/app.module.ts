@@ -12,6 +12,7 @@ import { InterestsModule } from "./modules/interests/interests.module";
 import { MessagingModule } from "./modules/messaging/messaging.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { VerificationModule } from "./modules/verification/verification.module";
+import { PrivacyModule } from "./modules/privacy/privacy.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -31,6 +32,7 @@ import { HealthController } from "./health.controller";
     MessagingModule,
     NotificationsModule,
     VerificationModule,
+    PrivacyModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

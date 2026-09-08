@@ -225,3 +225,25 @@ export interface VerificationBadges {
   identityVerified: boolean;
   identityStatus: IdentityStatus;
 }
+
+export type VisibilityLevel = "EVERYONE" | "REGISTERED" | "MATCHES" | "APPROVED" | "NOBODY";
+
+export interface PrivacySettings {
+  profileId: string;
+  incomeVisibility: VisibilityLevel;
+  contactVisibility: VisibilityLevel;
+  divorceDetailsVisibility: VisibilityLevel;
+  childrenDetailsVisibility: VisibilityLevel;
+  photoVisibility: VisibilityLevel;
+  requirePhotoRequestApproval: boolean;
+  showLastActiveStatus: boolean;
+  showOnlineStatus: boolean;
+}
+
+export const VISIBILITY_OPTIONS: { label: string; value: VisibilityLevel }[] = [
+  { label: "Everyone", value: "EVERYONE" },
+  { label: "Registered users", value: "REGISTERED" },
+  { label: "My matches", value: "MATCHES" },
+  { label: "Only people I approve", value: "APPROVED" },
+  { label: "Nobody", value: "NOBODY" },
+];

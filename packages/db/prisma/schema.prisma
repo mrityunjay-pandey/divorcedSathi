@@ -181,6 +181,7 @@ model Profile {
   previousMarriage PreviousMarriage?
   familyDetails    FamilyDetails?
   partnerPreference PartnerPreference?
+  privacySetting   PrivacySetting?
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -521,4 +522,44 @@ model Verification {
 
   @@index([userId])
   @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Module 13 — Privacy Controls (brief §17)
+// ---------------------------------------------------------------------------
+// One row per profile holding the visibility level for each sensitive
+// category the brief names. showLastActiveStatus/showOnlineStatus are
+// modeled now for forward-compatibility even though no last-active/online
+// tracking exists yet (no feature currently reads or writes those
+// signals) — storing the preference doesn't cost anything and avoids a
+// later migration. Contact info (email/mobile) is never returned by any
+// endpoint regardless of this setting; contactVisibility exists for a
+// future direct-contact-sharing feature, not as the current guard against
+// leaking credentials (brief §17: "Never expose phone numbers or emails
+// publicly" is already true by construction — no endpoint serializes them).
+
+enum VisibilityLevel {
+  EVERYONE
+  REGISTERED
+  MATCHES
+  APPROVED
+  NOBODY
+}
+
+model PrivacySetting {
+  id                          String          @id @default(uuid())
+  profileId                   String          @unique
+  profile                     Profile         @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  incomeVisibility            VisibilityLevel @default(MATCHES)
+  contactVisibility           VisibilityLevel @default(NOBODY)
+  divorceDetailsVisibility    VisibilityLevel @default(MATCHES)
+  childrenDetailsVisibility   VisibilityLevel @default(REGISTERED)
+  photoVisibility             VisibilityLevel @default(REGISTERED)
+  requirePhotoRequestApproval Boolean         @default(false)
+  showLastActiveStatus        Boolean         @default(true)
+  showOnlineStatus            Boolean         @default(true)
+
+  createdAt                   DateTime        @default(now())
+  updatedAt                   DateTime        @updatedAt
 }
