@@ -216,3 +216,12 @@ export interface AppNotification {
   readAt: string | null;
   createdAt: string;
 }
+
+export type IdentityStatus = "NONE" | "PENDING" | "APPROVED" | "REJECTED";
+
+export interface VerificationBadges {
+  mobileVerified: boolean;
+  emailVerified: boolean;
+  identityVerified: boolean;
+  identityStatus: IdentityStatus;
+}

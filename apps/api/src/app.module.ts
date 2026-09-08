@@ -11,6 +11,7 @@ import { DiscoveryModule } from "./modules/discovery/discovery.module";
 import { InterestsModule } from "./modules/interests/interests.module";
 import { MessagingModule } from "./modules/messaging/messaging.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { VerificationModule } from "./modules/verification/verification.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -29,6 +30,7 @@ import { HealthController } from "./health.controller";
     InterestsModule,
     MessagingModule,
     NotificationsModule,
+    VerificationModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

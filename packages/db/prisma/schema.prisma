@@ -62,6 +62,8 @@ model User {
   matchesAsB        Match[]    @relation("MatchUserB")
   messagesSent      Message[]  @relation("MessageSender")
   notifications     Notification[]
+  verifications     Verification[]  @relation("VerificationSubject")
+  verificationsReviewed Verification[] @relation("VerificationReviewer")
 
   @@index([email])
   @@index([mobileNumber])
@@ -483,4 +485,40 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@index([userId, readAt])
+}
+
+// ---------------------------------------------------------------------------
+// Module 12 — Verification (brief §26)
+// ---------------------------------------------------------------------------
+// Mobile/Email verification already exist as User.mobileVerifiedAt/
+// emailVerifiedAt (Module 2's OTP flow) — this module adds Identity
+// Verification only. documentStorageKey is an opaque object-storage key,
+// never a public URL and never returned to any user other than the
+// document owner and reviewing admins — see brief §26: "Never expose
+// government ID documents to other users." No file upload/signing
+// mechanism is implemented yet (that's an object-storage integration,
+// separate from this schema); this models the review workflow around
+// whatever key a future upload flow produces. Admin review here is
+// API-only — there's no admin dashboard UI until Module 15.
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Verification {
+  id                 String             @id @default(uuid())
+  userId             String
+  user               User               @relation("VerificationSubject", fields: [userId], references: [id], onDelete: Cascade)
+  status             VerificationStatus @default(PENDING)
+  documentStorageKey String
+  submittedAt        DateTime           @default(now())
+  reviewedAt         DateTime?
+  reviewedByAdminId  String?
+  reviewedByAdmin    User?              @relation("VerificationReviewer", fields: [reviewedByAdminId], references: [id])
+  rejectionReason    String?
+
+  @@index([userId])
+  @@index([status])
 }

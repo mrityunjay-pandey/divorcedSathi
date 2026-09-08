@@ -30,7 +30,7 @@ No module is skipped silently if its tests fail. No previously completed module 
 - [x] Module 9 — Interests & shortlist
 - [x] Module 10 — Matches/connections & messaging
 - [x] Module 11 — Notifications
-- [ ] Module 12 — Verification (mobile/email/ID)
+- [x] Module 12 — Verification (mobile/email/ID)
 - [ ] Module 13 — Privacy controls
 - [ ] Module 14 — Reporting & blocking
 - [ ] Module 15 — Admin panel & moderation queues
