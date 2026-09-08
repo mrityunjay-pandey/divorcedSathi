@@ -52,6 +52,7 @@ model User {
 
   refreshSessions RefreshSession[]
   otpCodes        OtpCode[]
+  profile         Profile?
 
   @@index([email])
   @@index([mobileNumber])
@@ -129,4 +130,55 @@ enum OtpPurpose {
   REGISTRATION_VERIFY
   LOGIN
   PASSWORD_RESET
+}
+
+// ---------------------------------------------------------------------------
+// Module 3 — Base matrimonial profile
+// ---------------------------------------------------------------------------
+// Deliberately separate from User (brief §44: "Do not put everything into one
+// giant User table"). This holds Basic Info (brief §11) only — About Me,
+// Previous Marriage, Family/Children, Lifestyle, Partner Preferences, Photos
+// each get their own table in Module 4/5/6 rather than growing this one
+// without bound.
+
+model Profile {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  heightCm       Int?
+  city           String
+  state          String?
+  country        String          @default("India")
+  motherTongue   String?
+  religion       String?
+  community      String?
+  education      String?
+  profession     String?
+  employmentType EmploymentType?
+  incomeRange    IncomeRange?
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([city])
+}
+
+enum EmploymentType {
+  SALARIED
+  SELF_EMPLOYED
+  BUSINESS_OWNER
+  NOT_WORKING
+  PREFER_NOT_TO_SAY
+}
+
+/// Lakh-denominated brackets, matching Indian matrimonial-platform convention
+/// (brief's positioning is explicitly Indian matrimonial, §1/§7).
+enum IncomeRange {
+  UNDER_5L
+  L5_TO_10L
+  L10_TO_20L
+  L20_TO_50L
+  ABOVE_50L
+  PREFER_NOT_TO_SAY
 }

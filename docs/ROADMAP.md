@@ -20,8 +20,8 @@ No module is skipped silently if its tests fail. No previously completed module 
 ## Module list (build order)
 
 - [x] Module 1 — Project scaffolding, design system tokens & primitives
-- [ ] Module 2 — Authentication (register, OTP verify, login, sessions)
-- [ ] Module 3 — Database core & base User/Profile models
+- [x] Module 2 — Authentication (register, OTP verify, login, sessions)
+- [x] Module 3 — Database core & base User/Profile models
 - [ ] Module 4 — Profile creation wizard (steps 1–6: basic info → education/career)
 - [ ] Module 5 — Previous marriage & family/children module
 - [ ] Module 6 — Partner preferences

@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { AuthModule } from "./modules/auth/auth.module";
+import { ProfilesModule } from "./modules/profiles/profiles.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -13,6 +14,7 @@ import { HealthController } from "./health.controller";
     // (or a dedicated rate-limit module) are built out.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     AuthModule,
+    ProfilesModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
