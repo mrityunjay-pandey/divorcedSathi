@@ -56,6 +56,31 @@ export function getCurrentUserId(): string | null {
   }
 }
 
+export function getCurrentUserRole(): string | null {
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1] ?? ""));
+    return typeof payload.role === "string" ? payload.role : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setTokens(accessToken: string, refreshToken: string): void {
+  window.localStorage.setItem("divorcedsathi_access_token", accessToken);
+  window.localStorage.setItem("divorcedsathi_refresh_token", refreshToken);
+}
+
+export function clearTokens(): void {
+  window.localStorage.removeItem("divorcedsathi_access_token");
+  window.localStorage.removeItem("divorcedsathi_refresh_token");
+}
+
+export function isAuthenticated(): boolean {
+  return getAccessToken() !== null;
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path, { method: "GET" }),
   post: <T>(path: string, body?: unknown) => request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),

@@ -16,18 +16,22 @@ export default function HomePage() {
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button size="lg">Create Your Profile</Button>
-        <Button size="lg" variant="outline">
-          Find Your Sathi
-        </Button>
+        <Link href="/register">
+          <Button size="lg">Create Your Profile</Button>
+        </Link>
+        <Link href="/login">
+          <Button size="lg" variant="outline">
+            Log In
+          </Button>
+        </Link>
       </div>
 
       <Card className="max-w-lg text-left">
         <CardContent>
           <p className="text-sm text-neutral-500">
-            This is the Module 1 scaffold: routing, the design system, and the base primitives are
-            in place. The full multi-section landing page (Trust, How It Works, Why
-            DivorcedSathi, Success Stories, FAQ) is built out as part of the landing-page module.
+            The full multi-section landing page (Trust, How It Works, Why DivorcedSathi, Success
+            Stories, FAQ) is a planned follow-up — for now this page focuses on getting you signed
+            up.
           </p>
         </CardContent>
       </Card>
