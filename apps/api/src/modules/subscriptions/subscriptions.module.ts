@@ -1,26 +1,27 @@
 import { Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PrismaModule } from "@/common/prisma/prisma.module";
-import { InterestsController } from "./interests.controller";
-import { InterestsService } from "./interests.service";
-import { ShortlistController, ShortlistService } from "./shortlist.controller";
+import { SubscriptionsController } from "./subscriptions.controller";
+import { SubscriptionsService } from "./subscriptions.service";
+import { PAYMENT_PROVIDER, MockPaymentProvider } from "./providers/payment-provider";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { NotificationsModule } from "../notifications/notifications.module";
-import { SafetyModule } from "../safety/safety.module";
-import { SubscriptionsModule } from "../subscriptions/subscriptions.module";
 
 @Module({
   imports: [
     PrismaModule,
     NotificationsModule,
-    SafetyModule,
-    SubscriptionsModule,
     JwtModule.register({
       secret: process.env.AUTH_JWT_SECRET ?? "dev-only-insecure-secret-change-me",
       signOptions: { expiresIn: process.env.AUTH_SESSION_TTL ?? "15m" },
     }),
   ],
-  controllers: [InterestsController, ShortlistController],
-  providers: [InterestsService, ShortlistService, JwtAuthGuard],
+  controllers: [SubscriptionsController],
+  providers: [
+    SubscriptionsService,
+    JwtAuthGuard,
+    { provide: PAYMENT_PROVIDER, useClass: MockPaymentProvider },
+  ],
+  exports: [SubscriptionsService],
 })
-export class InterestsModule {}
+export class SubscriptionsModule {}

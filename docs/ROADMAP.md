@@ -34,7 +34,7 @@ No module is skipped silently if its tests fail. No previously completed module 
 - [x] Module 13 — Privacy controls
 - [x] Module 14 — Reporting & blocking
 - [x] Module 15 — Admin panel & moderation queues
-- [ ] Module 16 — Subscriptions & payment architecture
+- [x] Module 16 — Subscriptions & payment architecture
 - [ ] Module 17 — Admin analytics
 - [ ] Module 18+ — Growth: recommendations v2, AI assistant, SEO/perf
 

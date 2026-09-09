@@ -297,3 +297,11 @@ export interface AdminUserSummary {
   status: "ACTIVE" | "SUSPENDED" | "BANNED" | "DELETED";
   role: "USER" | "MODERATOR" | "ADMIN";
 }
+
+export type Plan = "FREE" | "PREMIUM";
+
+export interface SubscriptionInfo {
+  plan: Plan;
+  status: "ACTIVE" | "EXPIRED" | "CANCELLED";
+  currentPeriodEnd: string | null;
+}

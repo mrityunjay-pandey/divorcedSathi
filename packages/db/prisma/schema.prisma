@@ -70,6 +70,8 @@ model User {
   blocksInitiated   Block[]         @relation("BlockInitiator")
   blocksReceived    Block[]         @relation("BlockTarget")
   auditLogsAsActor  AuditLog[]      @relation("AuditActor")
+  subscription      Subscription?
+  payments          Payment[]
 
   @@index([email])
   @@index([mobileNumber])
@@ -651,4 +653,65 @@ model AuditLog {
 
   @@index([adminId])
   @@index([targetType, targetId])
+}
+
+// ---------------------------------------------------------------------------
+// Module 16 — Subscriptions & Payment Architecture (brief §32/§33)
+// ---------------------------------------------------------------------------
+// No real payment gateway is integrated — PaymentProvider (see
+// apps/api/src/modules/subscriptions/providers) is an adapter interface,
+// same pattern as Module 2's EmailProvider/SmsProvider, so a real Indian
+// payment provider (UPI/cards/net banking/wallets, per brief §33) can be
+// plugged in later without touching call sites. Never stores raw card
+// data — amountMinorUnits + currency + a provider-issued orderId/
+// transactionId is the full payment record, matching brief §33's field
+// list exactly.
+
+enum Plan {
+  FREE
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model Subscription {
+  id               String             @id @default(uuid())
+  userId           String             @unique
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan             Plan               @default(FREE)
+  status           SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  payments         Payment[]
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  orderId        String        @unique
+  transactionId  String?
+  plan           Plan
+  amountMinorUnits Int         // smallest currency unit (paise for INR) — never a float
+  currency       String        @default("INR")
+  status         PaymentStatus @default(INITIATED)
+  createdAt      DateTime      @default(now())
+
+  @@index([userId])
+  @@index([status])
 }

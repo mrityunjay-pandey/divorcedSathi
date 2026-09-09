@@ -4,6 +4,8 @@ import { AppException } from "@/common/errors/app-exception";
 import { ErrorCode } from "@/common/errors/error-codes";
 import { NotificationsService } from "../notifications/notifications.service";
 import { BlockService } from "../safety/block.service";
+import { SubscriptionsService } from "../subscriptions/subscriptions.service";
+import { FREE_PLAN_DAILY_INTEREST_LIMIT } from "../subscriptions/plan-config";
 import { NotificationType } from "@divorcedsathi/db";
 import type { Interest } from "@divorcedsathi/db";
 
@@ -13,6 +15,7 @@ export class InterestsService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly blocks: BlockService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   async send(senderId: string, recipientId: string): Promise<Interest> {
@@ -25,6 +28,22 @@ export class InterestsService {
       // confirm to the sender that a block is the specific reason, which
       // would leak the block's existence back to the blocked party.
       throw new AppException(ErrorCode.NOT_FOUND, "This profile isn't available.", HttpStatus.NOT_FOUND);
+    }
+
+    // "Unlimited interests" (brief §32) is the Premium feature this
+    // enforces — Free plan gets a real daily cap, never a safety feature
+    // (blocking/reporting/messaging-with-an-existing-match are never
+    // gated, only this discovery-adjacent action).
+    if (!(await this.subscriptions.isOnPremium(senderId))) {
+      const since = new Date(Date.now() - 24 * 60 * 60_000);
+      const sentToday = await this.prisma.client.interest.count({ where: { senderId, createdAt: { gte: since } } });
+      if (sentToday >= FREE_PLAN_DAILY_INTEREST_LIMIT) {
+        throw new AppException(
+          ErrorCode.DAILY_INTEREST_LIMIT_REACHED,
+          `You've reached today's limit of ${FREE_PLAN_DAILY_INTEREST_LIMIT} interests on the Free plan. Upgrade to Premium for unlimited interests.`,
+          HttpStatus.FORBIDDEN,
+        );
+      }
     }
 
     const existing = await this.prisma.client.interest.findUnique({

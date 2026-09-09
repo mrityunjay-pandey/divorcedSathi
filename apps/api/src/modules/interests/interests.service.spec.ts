@@ -3,12 +3,13 @@ import { InterestsService } from "./interests.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
 import { BlockService } from "../safety/block.service";
+import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { ErrorCode } from "@/common/errors/error-codes";
 import { NotificationType, type Interest } from "@divorcedsathi/db";
 
 type MockPrisma = {
   client: {
-    interest: { findUnique: jest.Mock; findMany: jest.Mock; create: jest.Mock; update: jest.Mock };
+    interest: { findUnique: jest.Mock; findMany: jest.Mock; create: jest.Mock; update: jest.Mock; count: jest.Mock };
     match: { create: jest.Mock };
     $transaction: jest.Mock;
   };
@@ -31,17 +32,22 @@ describe("InterestsService", () => {
   let prisma: MockPrisma;
   let notifications: { create: jest.Mock };
   let blocks: { isBlockedEitherDirection: jest.Mock };
+  let subscriptions: { isOnPremium: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
       client: {
-        interest: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
+        interest: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), count: jest.fn() },
         match: { create: jest.fn() },
         $transaction: jest.fn(),
       },
     };
     notifications = { create: jest.fn() };
     blocks = { isBlockedEitherDirection: jest.fn().mockResolvedValue(false) };
+    // Default to Premium in most tests so the daily-limit branch doesn't
+    // interfere with tests not specifically about it — the limit's own
+    // tests explicitly set this to false.
+    subscriptions = { isOnPremium: jest.fn().mockResolvedValue(true) };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -49,6 +55,7 @@ describe("InterestsService", () => {
         { provide: PrismaService, useValue: prisma },
         { provide: NotificationsService, useValue: notifications },
         { provide: BlockService, useValue: blocks },
+        { provide: SubscriptionsService, useValue: subscriptions },
       ],
     }).compile();
 
@@ -67,6 +74,50 @@ describe("InterestsService", () => {
       await expect(service.send("user-1", "user-2")).rejects.toMatchObject({ code: ErrorCode.NOT_FOUND });
       expect(prisma.client.interest.findUnique).not.toHaveBeenCalled();
       expect(prisma.client.interest.create).not.toHaveBeenCalled();
+    });
+
+    describe("free-tier daily interest limit (brief §32: 'Unlimited interests' as a Premium feature)", () => {
+      it("does not check the limit at all for a Premium user", async () => {
+        subscriptions.isOnPremium.mockResolvedValueOnce(true);
+        prisma.client.interest.findUnique.mockResolvedValueOnce(null);
+        prisma.client.interest.create.mockResolvedValueOnce(baseInterest());
+
+        await service.send("user-1", "user-2");
+
+        expect(prisma.client.interest.count).not.toHaveBeenCalled();
+      });
+
+      it("allows sending when a Free user is under the daily limit", async () => {
+        subscriptions.isOnPremium.mockResolvedValueOnce(false);
+        prisma.client.interest.count.mockResolvedValueOnce(4);
+        prisma.client.interest.findUnique.mockResolvedValueOnce(null);
+        prisma.client.interest.create.mockResolvedValueOnce(baseInterest());
+
+        await expect(service.send("user-1", "user-2")).resolves.toBeDefined();
+      });
+
+      it("rejects sending once a Free user has hit the daily limit", async () => {
+        subscriptions.isOnPremium.mockResolvedValueOnce(false);
+        prisma.client.interest.count.mockResolvedValueOnce(5);
+
+        await expect(service.send("user-1", "user-2")).rejects.toMatchObject({
+          code: ErrorCode.DAILY_INTEREST_LIMIT_REACHED,
+        });
+        expect(prisma.client.interest.create).not.toHaveBeenCalled();
+      });
+
+      it("counts only interests sent in the last 24 hours, scoped to this sender", async () => {
+        subscriptions.isOnPremium.mockResolvedValueOnce(false);
+        prisma.client.interest.count.mockResolvedValueOnce(0);
+        prisma.client.interest.findUnique.mockResolvedValueOnce(null);
+        prisma.client.interest.create.mockResolvedValueOnce(baseInterest());
+
+        await service.send("user-1", "user-2");
+
+        const call = prisma.client.interest.count.mock.calls[0][0];
+        expect(call.where.senderId).toBe("user-1");
+        expect(call.where.createdAt.gte).toBeInstanceOf(Date);
+      });
     });
 
     it("rejects a duplicate interest to the same recipient", async () => {
