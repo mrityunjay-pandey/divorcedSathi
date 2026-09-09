@@ -25,6 +25,7 @@ COPY apps/api apps/api
 # this step runs on Render's build machines, not in a network-restricted
 # sandbox, so it works normally there.
 RUN npm run generate --workspace=@divorcedsathi/db
+RUN npm run build --workspace=@divorcedsathi/db
 RUN npm run build --workspace=@divorcedsathi/api
 
 FROM node:20-slim AS runner
