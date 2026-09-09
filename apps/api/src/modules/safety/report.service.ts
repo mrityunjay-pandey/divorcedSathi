@@ -2,12 +2,16 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { AppException } from "@/common/errors/app-exception";
 import { ErrorCode } from "@/common/errors/error-codes";
+import { AuditLogService } from "../admin/audit-log.service";
 import type { CreateReportDto } from "./dto/safety.dto";
 import type { Report } from "@divorcedsathi/db";
 
 @Injectable()
 export class ReportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   async create(reporterId: string, dto: CreateReportDto): Promise<Report> {
     if (reporterId === dto.reportedUserId) {
@@ -27,9 +31,11 @@ export class ReportService {
     if (!report) {
       throw new AppException(ErrorCode.REPORT_NOT_FOUND, "Report not found.", HttpStatus.NOT_FOUND);
     }
-    return this.prisma.client.report.update({
+    const updated = await this.prisma.client.report.update({
       where: { id: reportId },
       data: { status, reviewedAt: new Date(), reviewedByAdminId: adminId },
     });
+    await this.auditLog.record(adminId, `REPORT_${status}`, "Report", reportId);
+    return updated;
   }
 }

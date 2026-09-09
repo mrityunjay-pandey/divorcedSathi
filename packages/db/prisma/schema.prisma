@@ -69,6 +69,7 @@ model User {
   reportsReviewed   Report[]        @relation("ReportReviewer")
   blocksInitiated   Block[]         @relation("BlockInitiator")
   blocksReceived    Block[]         @relation("BlockTarget")
+  auditLogsAsActor  AuditLog[]      @relation("AuditActor")
 
   @@index([email])
   @@index([mobileNumber])
@@ -627,4 +628,27 @@ model Block {
 
   @@unique([blockerId, blockedUserId])
   @@index([blockedUserId])
+}
+
+// ---------------------------------------------------------------------------
+// Module 15 — Admin panel & moderation (brief §29-31)
+// ---------------------------------------------------------------------------
+// Every administrative action is logged here — brief §30: "Every
+// administrative action should be logged." targetType/targetId are a loose
+// polymorphic reference (e.g. targetType="User", targetId=<user id>) rather
+// than a real foreign key, since a single audit log legitimately needs to
+// reference many different entity types.
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      User     @relation("AuditActor", fields: [adminId], references: [id], onDelete: Cascade)
+  action     String
+  targetType String
+  targetId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetType, targetId])
 }

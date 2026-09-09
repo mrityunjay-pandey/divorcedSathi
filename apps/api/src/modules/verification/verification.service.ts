@@ -3,6 +3,7 @@ import { PrismaService } from "@/common/prisma/prisma.module";
 import { AppException } from "@/common/errors/app-exception";
 import { ErrorCode } from "@/common/errors/error-codes";
 import { NotificationsService } from "../notifications/notifications.service";
+import { AuditLogService } from "../admin/audit-log.service";
 import { NotificationType, type Verification } from "@divorcedsathi/db";
 
 export interface VerificationBadges {
@@ -17,6 +18,7 @@ export class VerificationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   private async latestFor(userId: string): Promise<Verification | null> {
@@ -67,6 +69,7 @@ export class VerificationService {
       data: { status: "APPROVED", reviewedAt: new Date(), reviewedByAdminId: adminId },
     });
     await this.notifications.create(verification.userId, NotificationType.VERIFICATION_COMPLETED, { verificationId, result: "APPROVED" });
+    await this.auditLog.record(adminId, "VERIFICATION_APPROVED", "Verification", verificationId);
     return updated;
   }
 
@@ -77,6 +80,7 @@ export class VerificationService {
       data: { status: "REJECTED", reviewedAt: new Date(), reviewedByAdminId: adminId, rejectionReason: reason },
     });
     await this.notifications.create(verification.userId, NotificationType.VERIFICATION_COMPLETED, { verificationId, result: "REJECTED" });
+    await this.auditLog.record(adminId, "VERIFICATION_REJECTED", "Verification", verificationId, { reason });
     return updated;
   }
 

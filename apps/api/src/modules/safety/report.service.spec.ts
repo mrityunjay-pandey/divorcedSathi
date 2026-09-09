@@ -1,6 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { ReportService } from "./report.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
+import { AuditLogService } from "../admin/audit-log.service";
 import { ErrorCode } from "@/common/errors/error-codes";
 import type { Report } from "@divorcedsathi/db";
 
@@ -28,11 +29,13 @@ function baseReport(overrides: Partial<Report> = {}): Report {
 describe("ReportService", () => {
   let service: ReportService;
   let prisma: MockPrisma;
+  let auditLog: { record: jest.Mock };
 
   beforeEach(async () => {
     prisma = { client: { report: { create: jest.fn(), findMany: jest.fn(), findUnique: jest.fn(), update: jest.fn() } } };
+    auditLog = { record: jest.fn() };
     const moduleRef = await Test.createTestingModule({
-      providers: [ReportService, { provide: PrismaService, useValue: prisma }],
+      providers: [ReportService, { provide: PrismaService, useValue: prisma }, { provide: AuditLogService, useValue: auditLog }],
     }).compile();
     service = moduleRef.get(ReportService);
   });
@@ -72,6 +75,7 @@ describe("ReportService", () => {
       where: { id: "report-1" },
       data: { status: "ACTION_TAKEN", reviewedAt: expect.any(Date), reviewedByAdminId: "admin-1" },
     });
+    expect(auditLog.record).toHaveBeenCalledWith("admin-1", "REPORT_ACTION_TAKEN", "Report", "report-1");
   });
 
   it("listForAdmin() only returns PENDING reports, oldest first for FIFO triage", async () => {

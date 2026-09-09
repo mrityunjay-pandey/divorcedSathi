@@ -6,11 +6,13 @@ import { VerificationService } from "./verification.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { AdminGuard } from "../auth/guards/admin.guard";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { AdminModule } from "../admin/admin.module";
 
 @Module({
   imports: [
     PrismaModule,
     NotificationsModule,
+    AdminModule,
     JwtModule.register({
       secret: process.env.AUTH_JWT_SECRET ?? "dev-only-insecure-secret-change-me",
       signOptions: { expiresIn: process.env.AUTH_SESSION_TTL ?? "15m" },

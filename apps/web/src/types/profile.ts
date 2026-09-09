@@ -277,3 +277,23 @@ export interface BlockedUser {
   blockedUserId: string;
   createdAt: string;
 }
+
+export interface AdminDashboardStats {
+  totalUsers: number;
+  newRegistrations7d: number;
+  verifiedUsers: number;
+  suspendedAccounts: number;
+  pendingVerifications: number;
+  pendingReports: number;
+  interestsSent: number;
+  connections: number;
+}
+
+export interface AdminUserSummary {
+  id: string;
+  firstName: string;
+  email: string | null;
+  mobileNumber: string | null;
+  status: "ACTIVE" | "SUSPENDED" | "BANNED" | "DELETED";
+  role: "USER" | "MODERATOR" | "ADMIN";
+}

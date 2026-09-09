@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { VerificationService } from "./verification.service";
 import { PrismaService } from "@/common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
+import { AuditLogService } from "../admin/audit-log.service";
 import { ErrorCode } from "@/common/errors/error-codes";
 import { NotificationType, type User, type Verification } from "@divorcedsathi/db";
 
@@ -30,6 +31,7 @@ describe("VerificationService", () => {
   let service: VerificationService;
   let prisma: MockPrisma;
   let notifications: { create: jest.Mock };
+  let auditLog: { record: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -39,12 +41,14 @@ describe("VerificationService", () => {
       },
     };
     notifications = { create: jest.fn() };
+    auditLog = { record: jest.fn() };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         VerificationService,
         { provide: PrismaService, useValue: prisma },
         { provide: NotificationsService, useValue: notifications },
+        { provide: AuditLogService, useValue: auditLog },
       ],
     }).compile();
 
@@ -142,6 +146,7 @@ describe("VerificationService", () => {
         NotificationType.VERIFICATION_COMPLETED,
         expect.objectContaining({ result: "APPROVED" }),
       );
+      expect(auditLog.record).toHaveBeenCalledWith("admin-1", "VERIFICATION_APPROVED", "Verification", "ver-1");
     });
 
     it("reject() stores the rejection reason and notifies the subject", async () => {
@@ -154,6 +159,7 @@ describe("VerificationService", () => {
         where: { id: "ver-1" },
         data: { status: "REJECTED", reviewedAt: expect.any(Date), reviewedByAdminId: "admin-1", rejectionReason: "Document was blurry" },
       });
+      expect(auditLog.record).toHaveBeenCalledWith("admin-1", "VERIFICATION_REJECTED", "Verification", "ver-1", { reason: "Document was blurry" });
     });
   });
 });
