@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -24,7 +25,9 @@ function ProfileCard({ card }: { card: DiscoveryCard }) {
     <Card>
       <CardHeader>
         <CardTitle>
-          {card.firstName}, {card.age}
+          <Link href={`/profile/${card.profileId}`} className="hover:underline">
+            {card.firstName}, {card.age}
+          </Link>
         </CardTitle>
         <CardDescription>
           {[card.city, card.state].filter(Boolean).join(", ")}

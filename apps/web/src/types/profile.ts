@@ -323,3 +323,24 @@ export interface ProfilePhotoItem {
   isPrimary: boolean;
   order: number;
 }
+
+export interface PublicProfileView {
+  profileId: string;
+  userId: string;
+  firstName: string;
+  age: number;
+  city: string;
+  state: string | null;
+  country: string;
+  education: string | null;
+  profession: string | null;
+  heightCm: number | null;
+  religion: string | null;
+  aboutMe: string | null;
+  incomeRange: IncomeRange | null;
+  previousMarriage: { previouslyMarried: true; divorceFinalized: boolean } | null;
+  previousMarriageDetails: { marriedYear: number | null; endedYear: number | null; additionalInfo: string | null } | null;
+  familyDetails: { childrenCount: ChildrenCount; childrenLivingArrangement: LivingArrangement | null } | null;
+  photoStorageKeys: string[] | null;
+  viewerRelation: "SELF" | "APPROVED" | "MATCH" | "REGISTERED" | "STRANGER";
+}

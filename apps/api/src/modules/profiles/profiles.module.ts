@@ -7,11 +7,17 @@ import { LifestyleController } from "./lifestyle.controller";
 import { LifestyleService } from "./lifestyle.service";
 import { PhotosController } from "./photos.controller";
 import { PhotosService } from "./photos.service";
+import { ProfileDetailController } from "./profile-detail.controller";
+import { ProfileDetailService } from "./profile-detail.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { FamilyModule } from "../family/family.module";
+import { SafetyModule } from "../safety/safety.module";
 
 @Module({
   imports: [
     PrismaModule,
+    FamilyModule,
+    SafetyModule,
     // JwtAuthGuard needs a JwtService in this module's DI container too,
     // since Nest resolves providers per-module rather than globally.
     JwtModule.register({
@@ -19,7 +25,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
       signOptions: { expiresIn: process.env.AUTH_SESSION_TTL ?? "15m" },
     }),
   ],
-  controllers: [ProfilesController, LifestyleController, PhotosController],
-  providers: [ProfilesService, LifestyleService, PhotosService, JwtAuthGuard],
+  controllers: [ProfilesController, LifestyleController, PhotosController, ProfileDetailController],
+  providers: [ProfilesService, LifestyleService, PhotosService, ProfileDetailService, JwtAuthGuard],
 })
 export class ProfilesModule {}

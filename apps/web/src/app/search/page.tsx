@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -110,7 +111,9 @@ export default function SearchPage() {
               <Card key={profile.profileId}>
                 <CardHeader>
                   <CardTitle>
-                    {profile.firstName}, {profile.age}
+                    <Link href={`/profile/${profile.profileId}`} className="hover:underline">
+                      {profile.firstName}, {profile.age}
+                    </Link>
                   </CardTitle>
                   <CardDescription>
                     {[profile.city, profile.state].filter(Boolean).join(", ")}
