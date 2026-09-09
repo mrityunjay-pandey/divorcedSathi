@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@/common/prisma/prisma.module";
-import type { AuditLog } from "@divorcedsathi/db";
+import type { AuditLog, Prisma } from "@divorcedsathi/db";
 
 @Injectable()
 export class AuditLogService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async record(adminId: string, action: string, targetType: string, targetId: string, metadata?: Record<string, unknown>): Promise<AuditLog> {
+  async record(adminId: string, action: string, targetType: string, targetId: string, metadata?: Prisma.InputJsonValue): Promise<AuditLog> {
     return this.prisma.client.auditLog.create({ data: { adminId, action, targetType, targetId, metadata } });
   }
 

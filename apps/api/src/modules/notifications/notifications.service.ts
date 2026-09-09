@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@/common/prisma/prisma.module";
-import type { Notification, NotificationType } from "@divorcedsathi/db";
+import type { Notification, NotificationType, Prisma } from "@divorcedsathi/db";
 
 @Injectable()
 export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, type: NotificationType, payload?: Record<string, unknown>): Promise<Notification> {
+  async create(userId: string, type: NotificationType, payload?: Prisma.InputJsonValue): Promise<Notification> {
     return this.prisma.client.notification.create({ data: { userId, type, payload } });
   }
 
