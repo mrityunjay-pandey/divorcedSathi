@@ -7,6 +7,9 @@
 FROM node:20-slim AS builder
 WORKDIR /repo
 
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+	&& rm -rf /var/lib/apt/lists/*
+
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY packages/db/package.json packages/db/package.json
@@ -27,6 +30,9 @@ RUN npm run build --workspace=@divorcedsathi/api
 FROM node:20-slim AS runner
 WORKDIR /repo
 ENV NODE_ENV=production
+
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+	&& rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /repo/node_modules node_modules
 COPY --from=builder /repo/package.json package.json
