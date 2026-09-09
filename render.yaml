@@ -12,10 +12,6 @@ services:
     dockerContext: .
     plan: free
     healthCheckPath: /api/v1/health
-    # Using `db push` rather than `migrate deploy` because no migration
-    # history exists in this repo yet — see DEPLOYMENT.md for why, and
-    # for the one-time step to switch to real migrations.
-    preDeployCommand: npx prisma db push --accept-data-loss --schema=/repo/packages/db/prisma/schema.prisma
     envVars:
       - key: NODE_ENV
         value: production
