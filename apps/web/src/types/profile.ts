@@ -314,3 +314,12 @@ export interface AnalyticsSnapshot {
   subscriptionConversionRate: number | null;
   totalModerationActionsTaken: number;
 }
+
+export interface ProfilePhotoItem {
+  id: string;
+  profileId: string;
+  storageKey: string;
+  caption: string | null;
+  isPrimary: boolean;
+  order: number;
+}

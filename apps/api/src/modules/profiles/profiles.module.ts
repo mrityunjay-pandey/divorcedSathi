@@ -5,6 +5,8 @@ import { ProfilesController } from "./profiles.controller";
 import { ProfilesService } from "./profiles.service";
 import { LifestyleController } from "./lifestyle.controller";
 import { LifestyleService } from "./lifestyle.service";
+import { PhotosController } from "./photos.controller";
+import { PhotosService } from "./photos.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @Module({
@@ -17,7 +19,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
       signOptions: { expiresIn: process.env.AUTH_SESSION_TTL ?? "15m" },
     }),
   ],
-  controllers: [ProfilesController, LifestyleController],
-  providers: [ProfilesService, LifestyleService, JwtAuthGuard],
+  controllers: [ProfilesController, LifestyleController, PhotosController],
+  providers: [ProfilesService, LifestyleService, PhotosService, JwtAuthGuard],
 })
 export class ProfilesModule {}

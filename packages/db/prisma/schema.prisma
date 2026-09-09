@@ -190,6 +190,7 @@ model Profile {
   familyDetails    FamilyDetails?
   partnerPreference PartnerPreference?
   privacySetting   PrivacySetting?
+  photos           ProfilePhoto[]
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -225,6 +226,31 @@ enum IncomeRange {
 // (hobbies/pets/travel) stay as plain strings for MVP rather than tag
 // tables — structured tagging is a reasonable post-MVP upgrade for search
 // faceting, not required to ship this module.
+
+// ---------------------------------------------------------------------------
+// Completion pass — Profile Photos (brief §18/§26, "Profile photograph")
+// ---------------------------------------------------------------------------
+// storageKey is an opaque object-storage reference, same pattern as
+// Verification.documentStorageKey (Module 12) — no upload/signing
+// mechanism is implemented (that's an object-storage integration, not a
+// schema concern), and the frontend renders a labeled placeholder rather
+// than pretending an image URL exists. Visibility is governed by
+// PrivacySetting.photoVisibility (Module 13), not a per-photo field —
+// the brief's "Request access before viewing private photos" flow is a
+// single profile-wide setting, not something that varies photo-to-photo.
+
+model ProfilePhoto {
+  id         String   @id @default(uuid())
+  profileId  String
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  storageKey String
+  caption    String?
+  isPrimary  Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([profileId])
+}
 
 model Lifestyle {
   id            String        @id @default(uuid())

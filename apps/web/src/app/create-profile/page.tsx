@@ -13,6 +13,7 @@ import { PreviousMarriageStep } from "@/components/profile-wizard/PreviousMarria
 import { FamilyStep } from "@/components/profile-wizard/FamilyStep";
 import { LifestyleStep } from "@/components/profile-wizard/LifestyleStep";
 import { PartnerPreferencesStep } from "@/components/profile-wizard/PartnerPreferencesStep";
+import { PhotosStep } from "@/components/profile-wizard/PhotosStep";
 import { ComingSoonStep } from "@/components/profile-wizard/ComingSoonStep";
 import { api, ApiError } from "@/lib/api-client";
 import type { FamilyDetails, Lifestyle, PartnerPreference, PreviousMarriage, Profile } from "@/types/profile";
@@ -250,9 +251,11 @@ export default function CreateProfilePage() {
           />
         )}
 
-        {!["basic-info", "about-me", "previous-marriage", "family", "lifestyle", "partner-preferences"].includes(activeStep.key) && (
-          <ComingSoonStep title={activeStep.label} onSkip={goToNextStep} />
-        )}
+        {activeStep.key === "photos" && <PhotosStep onSaved={goToNextStep} />}
+
+        {!["basic-info", "about-me", "previous-marriage", "family", "lifestyle", "partner-preferences", "photos"].includes(
+          activeStep.key,
+        ) && <ComingSoonStep title={activeStep.label} onSkip={goToNextStep} />}
       </Card>
     </main>
   );
