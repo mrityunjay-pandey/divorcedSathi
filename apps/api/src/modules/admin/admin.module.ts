@@ -4,6 +4,7 @@ import { PrismaModule } from "@/common/prisma/prisma.module";
 import { AdminController } from "./admin.controller";
 import { AdminService } from "./admin.service";
 import { AuditLogService } from "./audit-log.service";
+import { AnalyticsService } from "./analytics.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { AdminGuard } from "../auth/guards/admin.guard";
 
@@ -16,7 +17,7 @@ import { AdminGuard } from "../auth/guards/admin.guard";
     }),
   ],
   controllers: [AdminController],
-  providers: [AdminService, AuditLogService, JwtAuthGuard, AdminGuard],
+  providers: [AdminService, AuditLogService, AnalyticsService, JwtAuthGuard, AdminGuard],
   exports: [AuditLogService],
 })
 export class AdminModule {}

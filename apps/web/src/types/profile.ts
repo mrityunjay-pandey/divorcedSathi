@@ -305,3 +305,12 @@ export interface SubscriptionInfo {
   status: "ACTIVE" | "EXPIRED" | "CANCELLED";
   currentPeriodEnd: string | null;
 }
+
+export interface AnalyticsSnapshot {
+  profileCompletionRate: number | null;
+  verificationConversionRate: number | null;
+  interestAcceptanceRate: number | null;
+  connectionRate: number | null;
+  subscriptionConversionRate: number | null;
+  totalModerationActionsTaken: number;
+}

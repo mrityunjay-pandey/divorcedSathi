@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { AdminService } from "./admin.service";
+import { AnalyticsService } from "./analytics.service";
 import { SearchUsersQueryDto, SuspendUserDto } from "./dto/admin.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { AdminGuard } from "../auth/guards/admin.guard";
@@ -9,12 +10,21 @@ import type { AccessTokenPayload } from "../auth/services/session.service";
 @UseGuards(JwtAuthGuard, AdminGuard)
 @Controller("admin")
 export class AdminController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(
+    private readonly admin: AdminService,
+    private readonly analytics: AnalyticsService,
+  ) {}
 
   @Get("dashboard")
   async dashboard() {
     const stats = await this.admin.getDashboardStats();
     return { success: true, data: stats };
+  }
+
+  @Get("analytics")
+  async analyticsSnapshot() {
+    const snapshot = await this.analytics.getSnapshot();
+    return { success: true, data: snapshot };
   }
 
   @Get("users")

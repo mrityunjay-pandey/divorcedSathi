@@ -10,7 +10,15 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import { api, ApiError } from "@/lib/api-client";
-import type { AdminDashboardStats, AdminUserSummary } from "@/types/profile";
+import type { AdminDashboardStats, AdminUserSummary, AnalyticsSnapshot } from "@/types/profile";
+
+const RATE_LABELS: { key: keyof Omit<AnalyticsSnapshot, "totalModerationActionsTaken">; label: string }[] = [
+  { key: "profileCompletionRate", label: "Profile Completion" },
+  { key: "verificationConversionRate", label: "Verification Approval Rate" },
+  { key: "interestAcceptanceRate", label: "Interest Acceptance Rate" },
+  { key: "connectionRate", label: "Interest → Connection Rate" },
+  { key: "subscriptionConversionRate", label: "Premium Conversion" },
+];
 
 const STAT_LABELS: { key: keyof AdminDashboardStats; label: string }[] = [
   { key: "totalUsers", label: "Total Users" },
@@ -33,6 +41,7 @@ function StatusBadge({ status }: { status: AdminUserSummary["status"] }) {
 export default function AdminDashboardPage() {
   const { show } = useToast();
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AdminUserSummary[] | null>(null);
@@ -41,8 +50,12 @@ export default function AdminDashboardPage() {
 
   async function loadStats() {
     try {
-      const data = await api.get<AdminDashboardStats>("/admin/dashboard");
-      setStats(data);
+      const [dashboardData, analyticsData] = await Promise.all([
+        api.get<AdminDashboardStats>("/admin/dashboard"),
+        api.get<AnalyticsSnapshot>("/admin/analytics"),
+      ]);
+      setStats(dashboardData);
+      setAnalytics(analyticsData);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Couldn't load the dashboard.");
     }
@@ -108,6 +121,29 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {analytics && (
+        <div>
+          <h2 className="mb-3 text-lg font-semibold text-neutral-800">Conversion &amp; Quality Rates</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {RATE_LABELS.map(({ key, label }) => (
+              <Card key={key}>
+                <CardContent className="text-center">
+                  <p className="text-2xl font-semibold text-neutral-900">
+                    {analytics[key] === null ? "—" : `${analytics[key]}%`}
+                  </p>
+                  <p className="text-xs text-neutral-500">{label}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-neutral-400">
+            "—" means not enough data yet (no denominator), not a 0% rate. Registration-funnel
+            conversion and retention aren't shown — both would need new visit/session tracking that
+            doesn't exist yet, and brief §46 itself says not to collect unnecessary analytics data.
+          </p>
         </div>
       )}
 
