@@ -24,6 +24,12 @@ packages/
 docs/       Architecture, roadmap, ADRs
 ```
 
+## Deploying
+
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for a step-by-step guide to deploying
+the web app to Vercel and the API + Postgres to Render, including the
+one-time Prisma migration step this repo still needs (see that file for why).
+
 ## Getting started
 
 ```bash
